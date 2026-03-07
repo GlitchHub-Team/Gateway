@@ -26,9 +26,7 @@
                 }
             },
             "extensions": [
-                "golang.go",
-                "eamodio.gitlens",
-                "tamasfe.even-better-toml"
+                "golang.go"
             ]
         }
     },

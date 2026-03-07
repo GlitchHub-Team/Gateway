@@ -2,12 +2,12 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
+	commanddata "Gateway/internal/gateway/commandData"
 )
 
 type DeleteSensorCmd struct {
-	gatewayId     string
-	sensorId      string
-	configService *configmanager.ConfigManagerService
+	cmdData       commanddata.DeleteSensor
+	configService *configmanager.SensorDeleter
 }
 
 func (c *DeleteSensorCmd) Execute() error {
@@ -15,10 +15,9 @@ func (c *DeleteSensorCmd) Execute() error {
 	return nil
 }
 
-func NewDeleteSensorCmd(gatewayId string, sensorId string, configService *configmanager.ConfigManagerService) *DeleteSensorCmd {
+func NewDeleteSensorCmd(cmdData commanddata.DeleteSensor, configService *configmanager.SensorDeleter) *DeleteSensorCmd {
 	return &DeleteSensorCmd{
-		gatewayId:     gatewayId,
-		sensorId:      sensorId,
+		cmdData:       cmdData,
 		configService: configService,
 	}
 }

@@ -2,12 +2,12 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
+	commanddata "Gateway/internal/gateway/commandData"
 )
 
 type InterruptSensorCmd struct {
-	gatewayId     string
-	sensorId      string
-	configService *configmanager.ConfigManagerService
+	cmdData       commanddata.InterruptSensor
+	configService *configmanager.SensorInterrupter
 }
 
 func (c *InterruptSensorCmd) Execute() error {
@@ -15,10 +15,9 @@ func (c *InterruptSensorCmd) Execute() error {
 	return nil
 }
 
-func NewInterruptSensorCmd(gatewayId string, sensorId string, configService *configmanager.ConfigManagerService) *InterruptSensorCmd {
+func NewInterruptSensorCmd(cmdData commanddata.InterruptSensor, configService *configmanager.SensorInterrupter) *InterruptSensorCmd {
 	return &InterruptSensorCmd{
-		gatewayId:     gatewayId,
-		sensorId:      sensorId,
+		cmdData:       cmdData,
 		configService: configService,
 	}
 }

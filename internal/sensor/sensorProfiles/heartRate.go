@@ -1,12 +1,44 @@
 package sensorprofiles
 
-type HeartRateProfile struct{}
+import (
+	"time"
 
-func NewHeartRateProfile() *HeartRateProfile {
-	return &HeartRateProfile{}
+	"github.com/google/uuid"
+)
+
+type HeartRateProfile struct {
+	sensorId uuid.UUID
+	rand     Rand
 }
 
-func (g *HeartRateProfile) Generate() []byte {
-	// Logic to generate heart rate data
-	return []byte("heart rate data")
+func NewHeartRateProfile(sensorId uuid.UUID, rand Rand) *HeartRateProfile {
+	return &HeartRateProfile{
+		sensorId: sensorId,
+		rand:     rand,
+	}
+}
+
+type HeartRateData struct {
+	BpmValue int
+}
+
+func generateHeartRate(rand Rand) *HeartRateData {
+	bpm := 60 + rand.Intn(41)
+	return &HeartRateData{
+		BpmValue: bpm,
+	}
+}
+
+func (g *HeartRateProfile) Generate() *GeneratedSensorData {
+	data := generateHeartRate(g.rand)
+
+	return &GeneratedSensorData{
+		SensorId:  g.sensorId,
+		Timestamp: time.Now(),
+		Data:      data,
+	}
+}
+
+func (g *HeartRateProfile) String() string {
+	return "HeartRate"
 }

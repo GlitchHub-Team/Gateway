@@ -2,15 +2,12 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
-	profiles "Gateway/internal/sensor/sensorProfiles"
+	commanddata "Gateway/internal/gateway/commandData"
 )
 
 type AddSensorCmd struct {
-	gatewayId     string
-	sensorId      string
-	profile       profiles.SensorProfile
-	frequency     int
-	configService *configmanager.ConfigManagerService
+	cmdData       commanddata.AddSensor
+	configService *configmanager.SensorAdder
 }
 
 func (c *AddSensorCmd) Execute() error {
@@ -18,12 +15,9 @@ func (c *AddSensorCmd) Execute() error {
 	return nil
 }
 
-func NewAddSensorCmd(gatewayId string, sensorId string, profile profiles.SensorProfile, frequency int, configService *configmanager.ConfigManagerService) *AddSensorCmd {
+func NewAddSensorCmd(cmdData commanddata.AddSensor, configService *configmanager.SensorAdder) *AddSensorCmd {
 	return &AddSensorCmd{
-		gatewayId:     gatewayId,
-		sensorId:      sensorId,
-		profile:       profile,
-		frequency:     frequency,
+		cmdData:       cmdData,
 		configService: configService,
 	}
 }

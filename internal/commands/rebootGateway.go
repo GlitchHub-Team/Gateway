@@ -2,11 +2,12 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
+	commanddata "Gateway/internal/gateway/commandData"
 )
 
 type RebootGatewayCmd struct {
-	gatewayId     string
-	configService *configmanager.ConfigManagerService
+	cmdData       commanddata.RebootGateway
+	configService *configmanager.GatewayRebooter
 }
 
 func (c *RebootGatewayCmd) Execute() error {
@@ -14,9 +15,9 @@ func (c *RebootGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewRebootGatewayCmd(gatewayId string, configService *configmanager.ConfigManagerService) *RebootGatewayCmd {
+func NewRebootGatewayCmd(cmdData commanddata.RebootGateway, configService *configmanager.GatewayRebooter) *RebootGatewayCmd {
 	return &RebootGatewayCmd{
-		gatewayId:     gatewayId,
+		cmdData:       cmdData,
 		configService: configService,
 	}
 }

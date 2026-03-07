@@ -1,12 +1,51 @@
 package sensorprofiles
 
-type EnvironmentalSensingProfile struct{}
+import (
+	"time"
 
-func NewEnvironmentalSensingProfile() *EnvironmentalSensingProfile {
-	return &EnvironmentalSensingProfile{}
+	"github.com/google/uuid"
+)
+
+type EnvironmentalSensingProfile struct {
+	sensorId uuid.UUID
+	rand     Rand
 }
 
-func (g *EnvironmentalSensingProfile) Generate() []byte {
-	// Logic to generate environmental sensing data
-	return []byte("environmental sensing data")
+func NewEnvironmentalSensingProfile(sensorId uuid.UUID, rand Rand) *EnvironmentalSensingProfile {
+	return &EnvironmentalSensingProfile{
+		sensorId: sensorId,
+		rand:     rand,
+	}
+}
+
+type EnvironmentalSensingData struct {
+	TemperatureValue float64
+	HumidityValue    float64
+	PressureValue    float64
+}
+
+func generateEnvironmentalSensing(rand Rand) *EnvironmentalSensingData {
+	temperature := 15.0 + rand.Float64()*15.0
+	humidity := 30.0 + rand.Float64()*40.0
+	pressure := 980.0 + rand.Float64()*50.0
+
+	return &EnvironmentalSensingData{
+		TemperatureValue: temperature,
+		HumidityValue:    humidity,
+		PressureValue:    pressure,
+	}
+}
+
+func (g *EnvironmentalSensingProfile) Generate() *GeneratedSensorData {
+	data := generateEnvironmentalSensing(g.rand)
+
+	return &GeneratedSensorData{
+		SensorId:  g.sensorId,
+		Timestamp: time.Now(),
+		Data:      data,
+	}
+}
+
+func (g *EnvironmentalSensingProfile) String() string {
+	return "EnvironmentalSensing"
 }

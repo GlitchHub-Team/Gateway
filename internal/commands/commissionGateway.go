@@ -2,12 +2,12 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
+	commanddata "Gateway/internal/gateway/commandData"
 )
 
 type CommissionGatewayCmd struct {
-	gatewayId     string
-	tenantId      string
-	configService *configmanager.ConfigManagerService
+	cmdData       commanddata.CommissionGateway
+	configService *configmanager.GatewayCommissioner
 }
 
 func (c *CommissionGatewayCmd) Execute() error {
@@ -15,10 +15,9 @@ func (c *CommissionGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewCommissionGatewayCmd(gatewayId string, tenantId string, configService *configmanager.ConfigManagerService) *CommissionGatewayCmd {
+func NewCommissionGatewayCmd(cmdData commanddata.CommissionGateway, configService *configmanager.GatewayCommissioner) *CommissionGatewayCmd {
 	return &CommissionGatewayCmd{
-		gatewayId:     gatewayId,
-		tenantId:      tenantId,
+		cmdData:       cmdData,
 		configService: configService,
 	}
 }

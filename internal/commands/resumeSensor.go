@@ -2,12 +2,12 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
+	commanddata "Gateway/internal/gateway/commandData"
 )
 
 type ResumeSensorCmd struct {
-	gatewayId     string
-	sensorId      string
-	configService *configmanager.ConfigManagerService
+	cmdData       commanddata.ResumeSensor
+	configService *configmanager.SensorResumer
 }
 
 func (c *ResumeSensorCmd) Execute() error {
@@ -15,10 +15,9 @@ func (c *ResumeSensorCmd) Execute() error {
 	return nil
 }
 
-func NewResumeSensorCmd(gatewayId string, sensorId string, configService *configmanager.ConfigManagerService) *ResumeSensorCmd {
+func NewResumeSensorCmd(cmdData commanddata.ResumeSensor, configService *configmanager.SensorResumer) *ResumeSensorCmd {
 	return &ResumeSensorCmd{
-		gatewayId:     gatewayId,
-		sensorId:      sensorId,
+		cmdData:       cmdData,
 		configService: configService,
 	}
 }

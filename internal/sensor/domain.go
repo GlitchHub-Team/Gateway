@@ -13,14 +13,8 @@ type SimulatedSensor interface {
 	Stop() error
 }
 
-type GeneratedSensorData struct {
-	SensorId  string
-	Timestamp time.Time
-	Data      []byte
-}
-
 type SaveSensorDataRepository interface {
-	Save(data GeneratedSensorData) error
+	Save(data profiles.GeneratedSensorData) error
 }
 
 type SensorStatus string

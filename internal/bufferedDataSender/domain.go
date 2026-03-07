@@ -1,4 +1,4 @@
-package datapublisher
+package buffereddatasender
 
 import (
 	sensor "Gateway/internal/sensor"

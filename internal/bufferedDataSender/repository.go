@@ -1,7 +1,8 @@
-package datapublisher
+package buffereddatasender
 
 import (
 	sensor "Gateway/internal/sensor"
+
 	"github.com/nats-io/nats.go"
 )
 

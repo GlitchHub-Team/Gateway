@@ -1,80 +1,97 @@
 package configmanager
 
 import (
-	gateway "Gateway/internal/gateway"
+	commanddata "Gateway/internal/gateway/commandData"
 	sensor "Gateway/internal/sensor"
+	profiles "Gateway/internal/sensor/sensorProfiles"
 
 	"github.com/google/uuid"
 )
 
-type ConfigRepository interface {
-	GetAllGatewaysByTenantId(tenantId uuid.UUID) ([]gateway.Gateway, error)
-	GetGatewayById(gatewayId uuid.UUID) (*gateway.Gateway, error)
+type GatewayStatus string
+
+const (
+	Active   GatewayStatus = "active"
+	Inactive GatewayStatus = "inactive"
+)
+
+type Gateway struct {
+	Id                     uuid.UUID
+	TenantId               uuid.UUID
+	Sensors                map[uuid.UUID]sensor.Sensor
+	Status                 GatewayStatus
+	SensorProfileFrequency map[profiles.SensorProfile]commanddata.SensorFrequency
+}
+
+type ConfigPort interface {
+	GetAllGateways() (map[uuid.UUID]Gateway, error)
+	GetAllGatewaysByTenantId(tenantId uuid.UUID) (map[uuid.UUID]Gateway, error)
+	GetGatewayById(gatewayId uuid.UUID) (*Gateway, error)
 	GetSensorById(gatewayId uuid.UUID, sensorId uuid.UUID) (*sensor.Sensor, error)
-	ChangeSensorFrequency(dto gateway.ChangeSensorFrequency) error
-	CommissionGateway(dto gateway.CommissionGateway) error
-	CreateGateway(dto gateway.CreateGateway) error
-	DecommissionGateway(dto gateway.DecommissionGateway) error
-	DeleteGateway(dto gateway.DeleteGateway) error
-	InterruptGateway(dto gateway.InterruptGateway) error
-	RebootGateway(dto gateway.RebootGateway) error
-	ResetGateway(dto gateway.ResetGateway) error
-	ResumeGateway(dto gateway.ResumeGateway) error
-	InterruptSensor(dto gateway.InterruptSensor) error
-	ResumeSensor(dto gateway.ResumeSensor) error
-	AddSensor(dto gateway.AddSensor) error
-	DeleteSensor(dto gateway.DeleteSensor) error
+	ChangeSensorFrequency(cmdData commanddata.ChangeSensorFrequency) error
+	CommissionGateway(cmdData commanddata.CommissionGateway) error
+	CreateGateway(cmdData commanddata.CreateGateway) error
+	DecommissionGateway(cmdData commanddata.DecommissionGateway) error
+	DeleteGateway(cmdData commanddata.DeleteGateway) error
+	InterruptGateway(cmdData commanddata.InterruptGateway) error
+	RebootGateway(cmdData commanddata.RebootGateway) error
+	ResetGateway(cmdData commanddata.ResetGateway) error
+	ResumeGateway(cmdData commanddata.ResumeGateway) error
+	InterruptSensor(cmdData commanddata.InterruptSensor) error
+	ResumeSensor(cmdData commanddata.ResumeSensor) error
+	AddSensor(cmdData commanddata.AddSensor) error
+	DeleteSensor(cmdData commanddata.DeleteSensor) error
 }
 
 // Interfaces for defining methods in ConfigManagerService
 type SensorFrequencySetter interface {
-	ChangeSensorFrequency(dto gateway.ChangeSensorFrequency) error
+	ChangeSensorFrequency(cmdData commanddata.ChangeSensorFrequency) error
 }
 
 type GatewayCommissioner interface {
-	CommissionGateway(dto gateway.CommissionGateway) error
+	CommissionGateway(cmdData commanddata.CommissionGateway) error
 }
 
 type GatewayCreator interface {
-	CreateGateway(dto gateway.CreateGateway) error
+	CreateGateway(cmdData commanddata.CreateGateway) error
 }
 
 type GatewayDecommissioner interface {
-	DecommissionGateway(dto gateway.DecommissionGateway) error
+	DecommissionGateway(cmdData commanddata.DecommissionGateway) error
 }
 
 type GatewayDeleter interface {
-	DeleteGateway(dto gateway.DeleteGateway) error
+	DeleteGateway(cmdData commanddata.DeleteGateway) error
 }
 
 type GatewayInterrupter interface {
-	InterruptGateway(dto gateway.InterruptGateway) error
+	InterruptGateway(cmdData commanddata.InterruptGateway) error
 }
 
 type GatewayRebooter interface {
-	RebootGateway(dto gateway.RebootGateway) error
+	RebootGateway(cmdData commanddata.RebootGateway) error
 }
 
 type GatewayResetter interface {
-	ResetGateway(dto gateway.ResetGateway) error
+	ResetGateway(cmdData commanddata.ResetGateway) error
 }
 
 type GatewayResumer interface {
-	ResumeGateway(dto gateway.ResumeGateway) error
+	ResumeGateway(cmdData commanddata.ResumeGateway) error
 }
 
 type SensorInterrupter interface {
-	InterruptSensor(dto gateway.InterruptSensor) error
+	InterruptSensor(cmdData commanddata.InterruptSensor) error
 }
 
 type SensorResumer interface {
-	ResumeSensor(dto gateway.ResumeSensor) error
+	ResumeSensor(cmdData commanddata.ResumeSensor) error
 }
 
 type SensorAdder interface {
-	AddSensor(dto gateway.AddSensor) error
+	AddSensor(cmdData commanddata.AddSensor) error
 }
 
 type SensorDeleter interface {
-	DeleteSensor(dto gateway.DeleteSensor) error
+	DeleteSensor(cmdData commanddata.DeleteSensor) error
 }

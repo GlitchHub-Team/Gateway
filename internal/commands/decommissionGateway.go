@@ -2,11 +2,12 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
+	commanddata "Gateway/internal/gateway/commandData"
 )
 
 type DecommissionGatewayCmd struct {
-	gatewayId     string
-	configService *configmanager.ConfigManagerService
+	cmdData       commanddata.DecommissionGateway
+	configService *configmanager.GatewayDecommissioner
 }
 
 func (c *DecommissionGatewayCmd) Execute() error {
@@ -14,9 +15,9 @@ func (c *DecommissionGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewDecommissionGatewayCmd(gatewayId string, configService *configmanager.ConfigManagerService) *DecommissionGatewayCmd {
+func NewDecommissionGatewayCmd(cmdData commanddata.DecommissionGateway, configService *configmanager.GatewayDecommissioner) *DecommissionGatewayCmd {
 	return &DecommissionGatewayCmd{
-		gatewayId:     gatewayId,
+		cmdData:       cmdData,
 		configService: configService,
 	}
 }
