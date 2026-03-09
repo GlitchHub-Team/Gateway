@@ -2,7 +2,7 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
-	commanddata "Gateway/internal/gateway/commandData"
+	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type CommissionGatewayCmd struct {
@@ -20,4 +20,8 @@ func NewCommissionGatewayCmd(cmdData commanddata.CommissionGateway, configServic
 		cmdData:       cmdData,
 		configService: configService,
 	}
+}
+
+func (c *CommissionGatewayCmd) String() string {
+	return "CommissionGatewayCmd"
 }

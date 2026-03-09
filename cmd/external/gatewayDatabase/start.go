@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"log"
 
-	configManager "Gateway/internal/configManager"
+	configrepositories "Gateway/internal/configManager/configRepositories"
 
 	_ "modernc.org/sqlite"
 )
@@ -42,6 +42,7 @@ func createSensorTable(db *sql.DB) error {
 		id VARCHAR(255),
 		gatewayId VARCHAR(255) NOT NULL,
 		profile VARCHAR(255) NOT NULL,
+		frequency INT NOT NULL,
 		status VARCHAR(255) NOT NULL,
 		PRIMARY KEY (id, gatewayId),
 		FOREIGN KEY (gatewayId) REFERENCES gateways(id)
@@ -51,7 +52,7 @@ func createSensorTable(db *sql.DB) error {
 	return err
 }
 
-func NewGatewayDatabase() configManager.ConfigDbConnection {
+func NewGatewayDatabase() configrepositories.ConfigDbConnection {
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
 		log.Fatalf("Error while opening DB: %v", err)
@@ -72,5 +73,5 @@ func NewGatewayDatabase() configManager.ConfigDbConnection {
 		log.Fatalf("Error while creating sensor type frequencies table: %v", err)
 	}
 
-	return configManager.ConfigDbConnection{DB: db}
+	return configrepositories.ConfigDbConnection{DB: db}
 }

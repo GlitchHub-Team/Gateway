@@ -3,31 +3,32 @@ package commandcontrollers
 import (
 	"encoding/json"
 
-	commanddata "Gateway/internal/gateway/commandData"
-	gatewayusecases "Gateway/internal/gateway/gatewayUseCases"
+	commanddata "Gateway/internal/gatewayManager/commandData"
+	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
 
-type ResumeSensorSubject string
+type CommissionGatewaySubject string
 
-type NATSResumeSensorController struct {
+type NATSCommissionGatewayController struct {
 	natsConn *nats.Conn
 	subject  string
-	useCase  gatewayusecases.ResumeSensorUseCase
+	useCase  gatewayusecases.CommissionGatewayUseCase
 	logger   *zap.Logger
 }
 
-type NATSResumeSensorDTO struct {
+type NATSCommissionGatewayDTO struct {
 	GatewayId string `json:"gatewayId"`
-	SensorId  string `json:"sensorId"`
+	TenantId  string `json:"tenantId"`
 }
 
-func (c *NATSResumeSensorController) Listen() {
+func (c *NATSCommissionGatewayController) Listen() {
 	_, err := c.natsConn.Subscribe(c.subject, func(msg *nats.Msg) {
-		cmd, err := c.parseResumeSensorCommand(msg)
+		c.logger.Info("Ricevuto comando su subject: ", zap.String("subject", c.subject))
+		cmd, err := c.parseCommissionGatewayCommand(msg)
 		if err != nil {
 			err := wrongCommandErrorHandler(err, msg, c.logger)
 			if err != nil {
@@ -35,8 +36,8 @@ func (c *NATSResumeSensorController) Listen() {
 			}
 			return
 		}
-		res := c.useCase.ResumeSensor(cmd)
-		err = responseHandler(res, msg)
+		res := c.useCase.CommissionGateway(cmd)
+		err = responseHandler(&res, msg)
 		if err != nil {
 			c.logger.Error("Errore durante la comunicazione della risposta", zap.String("subject", c.subject), zap.Error(err))
 		}
@@ -46,8 +47,8 @@ func (c *NATSResumeSensorController) Listen() {
 	}
 }
 
-func (c *NATSResumeSensorController) parseResumeSensorCommand(msg *nats.Msg) (*commanddata.ResumeSensor, error) {
-	var req NATSResumeSensorDTO
+func (c *NATSCommissionGatewayController) parseCommissionGatewayCommand(msg *nats.Msg) (*commanddata.CommissionGateway, error) {
+	var req NATSCommissionGatewayDTO
 
 	err := json.Unmarshal(msg.Data, &req)
 	if err != nil {
@@ -59,19 +60,19 @@ func (c *NATSResumeSensorController) parseResumeSensorCommand(msg *nats.Msg) (*c
 		return nil, err
 	}
 
-	sensorId, err := uuid.Parse(req.SensorId)
+	tenantId, err := uuid.Parse(req.TenantId)
 	if err != nil {
 		return nil, err
 	}
 
-	return &commanddata.ResumeSensor{
+	return &commanddata.CommissionGateway{
 		GatewayId: gatewayId,
-		SensorId:  sensorId,
+		TenantId:  tenantId,
 	}, nil
 }
 
-func NewNATSResumeSensorController(natsConn *nats.Conn, subject ResumeSensorSubject, useCase gatewayusecases.ResumeSensorUseCase, logger *zap.Logger) *NATSResumeSensorController {
-	return &NATSResumeSensorController{
+func NewNATSCommissionGatewayController(natsConn *nats.Conn, subject CommissionGatewaySubject, useCase gatewayusecases.CommissionGatewayUseCase, logger *zap.Logger) *NATSCommissionGatewayController {
+	return &NATSCommissionGatewayController{
 		natsConn: natsConn,
 		subject:  string(subject),
 		useCase:  useCase,

@@ -1,10 +1,11 @@
-package configmanager
+package configrepositories
 
 import (
 	"database/sql"
 
-	commanddata "Gateway/internal/gateway/commandData"
-	sensor "Gateway/internal/sensor"
+	configmanager "Gateway/internal/configManager"
+	commanddata "Gateway/internal/gatewayManager/commandData"
+	"Gateway/internal/sensor"
 
 	"github.com/google/uuid"
 )
@@ -23,17 +24,12 @@ func NewSQLiteConfigRepository(conn ConfigDbConnection) *SQLiteConfigRepository 
 	}
 }
 
-func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]Gateway, error) {
+func (r *SQLiteConfigRepository) GetAllGatewaysByTenantId(tenantId uuid.UUID) (map[uuid.UUID]configmanager.Gateway, error) {
 	// TODO: Implement database query
 	return nil, nil
 }
 
-func (r *SQLiteConfigRepository) GetAllGatewaysByTenantId(tenantId uuid.UUID) (map[uuid.UUID]Gateway, error) {
-	// TODO: Implement database query
-	return nil, nil
-}
-
-func (r *SQLiteConfigRepository) GetGatewayById(gatewayId uuid.UUID) (*Gateway, error) {
+func (r *SQLiteConfigRepository) GetGatewayById(gatewayId uuid.UUID) (*configmanager.Gateway, error) {
 	// TODO: Implement database query
 	return nil, nil
 }

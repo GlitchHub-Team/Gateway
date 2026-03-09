@@ -5,10 +5,14 @@ import (
 )
 
 type DataSender interface {
-	Start() error
-	Stop() error
+	Start()
+	Stop()
 }
 
-type SendSensorDataRepository interface {
+type SendSensorDataPort interface {
 	Send(data *sensor.SensorData) error
+}
+
+type BufferedDataPort interface {
+	GetOrderedBufferedData() ([]*sensor.SensorData, error)
 }

@@ -2,7 +2,7 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
-	commanddata "Gateway/internal/gateway/commandData"
+	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type ResetGatewayCmd struct {
@@ -20,4 +20,8 @@ func NewResetGatewayCmd(cmdData commanddata.ResetGateway, configService *configm
 		cmdData:       cmdData,
 		configService: configService,
 	}
+}
+
+func (c *ResetGatewayCmd) String() string {
+	return "ResetGatewayCmd"
 }

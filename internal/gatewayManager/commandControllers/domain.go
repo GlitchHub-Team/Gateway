@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	gateway "Gateway/internal/gateway"
+	gatmanager "Gateway/internal/gatewayManager"
 
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
@@ -15,7 +15,7 @@ type NATSCommandController interface {
 }
 
 func wrongCommandErrorHandler(err error, msg *nats.Msg, logger *zap.Logger) error {
-	res, err := json.Marshal(gateway.Response{Success: false, Message: fmt.Sprintf("Formato del comando incorretto: %v", err)})
+	res, err := json.Marshal(gatmanager.Response{Success: false, Message: fmt.Sprintf("Formato del comando incorretto: %v", err)})
 	if err != nil {
 		logger.Panic("Errore durante la serializzazione del messaggio di formato errato", zap.Error(err))
 	}
@@ -26,7 +26,7 @@ func wrongCommandErrorHandler(err error, msg *nats.Msg, logger *zap.Logger) erro
 	return nil
 }
 
-func responseHandler(res *gateway.Response, msg *nats.Msg) error {
+func responseHandler(res *gatmanager.Response, msg *nats.Msg) error {
 	resBytes, err := json.Marshal(res)
 	if err != nil {
 		return err

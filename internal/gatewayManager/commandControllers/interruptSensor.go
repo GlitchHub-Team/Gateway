@@ -3,8 +3,8 @@ package commandcontrollers
 import (
 	"encoding/json"
 
-	commanddata "Gateway/internal/gateway/commandData"
-	gatewayusecases "Gateway/internal/gateway/gatewayUseCases"
+	commanddata "Gateway/internal/gatewayManager/commandData"
+	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
@@ -27,6 +27,7 @@ type NATSInterruptSensorDTO struct {
 
 func (c *NATSInterruptSensorController) Listen() {
 	_, err := c.natsConn.Subscribe(c.subject, func(msg *nats.Msg) {
+		c.logger.Info("Ricevuto comando su subject: ", zap.String("subject", c.subject))
 		cmd, err := c.parseInterruptSensorCommand(msg)
 		if err != nil {
 			err := wrongCommandErrorHandler(err, msg, c.logger)
@@ -36,7 +37,7 @@ func (c *NATSInterruptSensorController) Listen() {
 			return
 		}
 		res := c.useCase.InterruptSensor(cmd)
-		err = responseHandler(res, msg)
+		err = responseHandler(&res, msg)
 		if err != nil {
 			c.logger.Error("Errore durante la comunicazione della risposta", zap.String("subject", c.subject), zap.Error(err))
 		}

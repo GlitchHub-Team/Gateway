@@ -3,30 +3,31 @@ package commandcontrollers
 import (
 	"encoding/json"
 
-	commanddata "Gateway/internal/gateway/commandData"
-	gatewayusecases "Gateway/internal/gateway/gatewayUseCases"
+	commanddata "Gateway/internal/gatewayManager/commandData"
+	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
 
-type ResetGatewaySubject string
+type DecommissionGatewaySubject string
 
-type NATSResetGatewayController struct {
+type NATSDecommissionGatewayController struct {
 	natsConn *nats.Conn
 	subject  string
-	useCase  gatewayusecases.ResetGatewayUseCase
+	useCase  gatewayusecases.DecommissionGatewayUseCase
 	logger   *zap.Logger
 }
 
-type NATSResetGatewayDTO struct {
+type NATSDecommissionGatewayDTO struct {
 	GatewayId string `json:"gatewayId"`
 }
 
-func (c *NATSResetGatewayController) Listen() {
+func (c *NATSDecommissionGatewayController) Listen() {
 	_, err := c.natsConn.Subscribe(c.subject, func(msg *nats.Msg) {
-		cmd, err := c.parseResetGatewayCommand(msg)
+		c.logger.Info("Ricevuto comando su subject: ", zap.String("subject", c.subject))
+		cmd, err := c.parseDecommissionGatewayCommand(msg)
 		if err != nil {
 			err := wrongCommandErrorHandler(err, msg, c.logger)
 			if err != nil {
@@ -34,8 +35,8 @@ func (c *NATSResetGatewayController) Listen() {
 			}
 			return
 		}
-		res := c.useCase.ResetGateway(cmd)
-		err = responseHandler(res, msg)
+		res := c.useCase.DecommissionGateway(cmd)
+		err = responseHandler(&res, msg)
 		if err != nil {
 			c.logger.Error("Errore durante la comunicazione della risposta", zap.String("subject", c.subject), zap.Error(err))
 		}
@@ -45,8 +46,8 @@ func (c *NATSResetGatewayController) Listen() {
 	}
 }
 
-func (c *NATSResetGatewayController) parseResetGatewayCommand(msg *nats.Msg) (*commanddata.ResetGateway, error) {
-	var req NATSResetGatewayDTO
+func (c *NATSDecommissionGatewayController) parseDecommissionGatewayCommand(msg *nats.Msg) (*commanddata.DecommissionGateway, error) {
+	var req NATSDecommissionGatewayDTO
 
 	err := json.Unmarshal(msg.Data, &req)
 	if err != nil {
@@ -58,13 +59,13 @@ func (c *NATSResetGatewayController) parseResetGatewayCommand(msg *nats.Msg) (*c
 		return nil, err
 	}
 
-	return &commanddata.ResetGateway{
+	return &commanddata.DecommissionGateway{
 		GatewayId: gatewayId,
 	}, nil
 }
 
-func NewNATSResetGatewayController(natsConn *nats.Conn, subject ResetGatewaySubject, useCase gatewayusecases.ResetGatewayUseCase, logger *zap.Logger) *NATSResetGatewayController {
-	return &NATSResetGatewayController{
+func NewNATSDecommissionGatewayController(natsConn *nats.Conn, subject DecommissionGatewaySubject, useCase gatewayusecases.DecommissionGatewayUseCase, logger *zap.Logger) *NATSDecommissionGatewayController {
+	return &NATSDecommissionGatewayController{
 		natsConn: natsConn,
 		subject:  string(subject),
 		useCase:  useCase,

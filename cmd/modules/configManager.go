@@ -1,7 +1,8 @@
 package modules
 
 import (
-	configManager "Gateway/internal/configManager"
+	configmanager "Gateway/internal/configManager"
+	configrepositories "Gateway/internal/configManager/configRepositories"
 
 	"go.uber.org/fx"
 )
@@ -9,24 +10,25 @@ import (
 var ConfigManagerModule = fx.Module("ConfigManagerModule",
 	fx.Provide(
 		fx.Annotate(
-			configManager.NewConfigManagerService,
-			fx.As(new(configManager.SensorFrequencySetter)),
-			fx.As(new(configManager.GatewayCommissioner)),
-			fx.As(new(configManager.GatewayCreator)),
-			fx.As(new(configManager.GatewayDecommissioner)),
-			fx.As(new(configManager.GatewayDeleter)),
-			fx.As(new(configManager.GatewayInterrupter)),
-			fx.As(new(configManager.GatewayRebooter)),
-			fx.As(new(configManager.GatewayResetter)),
-			fx.As(new(configManager.GatewayResumer)),
-			fx.As(new(configManager.SensorInterrupter)),
-			fx.As(new(configManager.SensorResumer)),
-			fx.As(new(configManager.SensorAdder)),
-			fx.As(new(configManager.SensorDeleter)),
+			configmanager.NewConfigManagerService,
+			fx.As(new(configmanager.GatewaysFetcher)),
+			fx.As(new(configmanager.SensorFrequencySetter)),
+			fx.As(new(configmanager.GatewayCommissioner)),
+			fx.As(new(configmanager.GatewayCreator)),
+			fx.As(new(configmanager.GatewayDecommissioner)),
+			fx.As(new(configmanager.GatewayDeleter)),
+			fx.As(new(configmanager.GatewayInterrupter)),
+			fx.As(new(configmanager.GatewayRebooter)),
+			fx.As(new(configmanager.GatewayResetter)),
+			fx.As(new(configmanager.GatewayResumer)),
+			fx.As(new(configmanager.SensorInterrupter)),
+			fx.As(new(configmanager.SensorResumer)),
+			fx.As(new(configmanager.SensorAdder)),
+			fx.As(new(configmanager.SensorDeleter)),
 		),
 		fx.Annotate(
-			configManager.NewSQLiteConfigRepository,
-			fx.As(new(configManager.ConfigPort)),
+			configrepositories.NewSQLiteConfigRepository,
+			fx.As(new(configmanager.ConfigPort)),
 		),
 	),
 )

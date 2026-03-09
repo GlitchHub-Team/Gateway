@@ -20,7 +20,7 @@ func NewSQLiteSaveSensorDataRepository(conn BufferDbConnection) *SQLiteSaveSenso
 	}
 }
 
-func (r *SQLiteSaveSensorDataRepository) Save(data profiles.GeneratedSensorData) error {
+func (r *SQLiteSaveSensorDataRepository) Save(data *profiles.GeneratedSensorData) error {
 	// Logic to save the generated sensor data to SQLite database
 	return nil
 }

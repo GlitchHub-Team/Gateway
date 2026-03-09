@@ -1,16 +1,19 @@
 package modules
 
 import (
-	"Gateway/internal/gateway"
-	gatewayusecases "Gateway/internal/gateway/gatewayUseCases"
+	gatmanager "Gateway/internal/gatewayManager"
+	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
 
 	"go.uber.org/fx"
 )
 
 var GatewayModule = fx.Module("GatewayModule",
 	fx.Provide(
+		gatmanager.NewSensorWorkers,
+		gatmanager.NewGatewayWorkers,
 		fx.Annotate(
-			gateway.NewGatewayManagerService,
+			gatmanager.NewGatewayManagerService,
+			fx.As(new(gatmanager.GatewaysLoader)),
 			fx.As(new(gatewayusecases.CreateGatewayUseCase)),
 			fx.As(new(gatewayusecases.DeleteGatewayUseCase)),
 			fx.As(new(gatewayusecases.CommissionGatewayUseCase)),

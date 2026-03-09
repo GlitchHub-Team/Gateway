@@ -2,7 +2,7 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
-	commanddata "Gateway/internal/gateway/commandData"
+	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type DecommissionGatewayCmd struct {
@@ -20,4 +20,8 @@ func NewDecommissionGatewayCmd(cmdData commanddata.DecommissionGateway, configSe
 		cmdData:       cmdData,
 		configService: configService,
 	}
+}
+
+func (c *DecommissionGatewayCmd) String() string {
+	return "DecommissionGatewayCmd"
 }

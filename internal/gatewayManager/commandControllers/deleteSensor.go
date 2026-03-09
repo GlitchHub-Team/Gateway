@@ -3,30 +3,32 @@ package commandcontrollers
 import (
 	"encoding/json"
 
-	commanddata "Gateway/internal/gateway/commandData"
-	gatewayusecases "Gateway/internal/gateway/gatewayUseCases"
+	commanddata "Gateway/internal/gatewayManager/commandData"
+	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
 
-type ResumeGatewaySubject string
+type DeleteSensorSubject string
 
-type NATSResumeGatewayController struct {
+type NATSDeleteSensorController struct {
 	natsConn *nats.Conn
 	subject  string
-	useCase  gatewayusecases.ResumeGatewayUseCase
+	useCase  gatewayusecases.DeleteSensorUseCase
 	logger   *zap.Logger
 }
 
-type NATSResumeGatewayDTO struct {
+type NATSDeleteSensorDTO struct {
 	GatewayId string `json:"gatewayId"`
+	SensorId  string `json:"sensorId"`
 }
 
-func (c *NATSResumeGatewayController) Listen() {
+func (c *NATSDeleteSensorController) Listen() {
 	_, err := c.natsConn.Subscribe(c.subject, func(msg *nats.Msg) {
-		cmd, err := c.parseResumeGatewayCommand(msg)
+		c.logger.Info("Ricevuto comando su subject: ", zap.String("subject", c.subject))
+		cmd, err := c.parseDeleteSensorCommand(msg)
 		if err != nil {
 			err := wrongCommandErrorHandler(err, msg, c.logger)
 			if err != nil {
@@ -34,8 +36,8 @@ func (c *NATSResumeGatewayController) Listen() {
 			}
 			return
 		}
-		res := c.useCase.ResumeGateway(cmd)
-		err = responseHandler(res, msg)
+		res := c.useCase.DeleteSensor(cmd)
+		err = responseHandler(&res, msg)
 		if err != nil {
 			c.logger.Error("Errore durante la comunicazione della risposta", zap.String("subject", c.subject), zap.Error(err))
 		}
@@ -45,8 +47,8 @@ func (c *NATSResumeGatewayController) Listen() {
 	}
 }
 
-func (c *NATSResumeGatewayController) parseResumeGatewayCommand(msg *nats.Msg) (*commanddata.ResumeGateway, error) {
-	var req NATSResumeGatewayDTO
+func (c *NATSDeleteSensorController) parseDeleteSensorCommand(msg *nats.Msg) (*commanddata.DeleteSensor, error) {
+	var req NATSDeleteSensorDTO
 
 	err := json.Unmarshal(msg.Data, &req)
 	if err != nil {
@@ -58,13 +60,19 @@ func (c *NATSResumeGatewayController) parseResumeGatewayCommand(msg *nats.Msg) (
 		return nil, err
 	}
 
-	return &commanddata.ResumeGateway{
+	sensorId, err := uuid.Parse(req.SensorId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &commanddata.DeleteSensor{
 		GatewayId: gatewayId,
+		SensorId:  sensorId,
 	}, nil
 }
 
-func NewNATSResumeGatewayController(natsConn *nats.Conn, subject ResumeGatewaySubject, useCase gatewayusecases.ResumeGatewayUseCase, logger *zap.Logger) *NATSResumeGatewayController {
-	return &NATSResumeGatewayController{
+func NewNATSDeleteSensorController(natsConn *nats.Conn, subject DeleteSensorSubject, useCase gatewayusecases.DeleteSensorUseCase, logger *zap.Logger) *NATSDeleteSensorController {
+	return &NATSDeleteSensorController{
 		natsConn: natsConn,
 		subject:  string(subject),
 		useCase:  useCase,

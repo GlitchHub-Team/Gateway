@@ -2,7 +2,7 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
-	commanddata "Gateway/internal/gateway/commandData"
+	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type AddSensorCmd struct {
@@ -20,4 +20,8 @@ func NewAddSensorCmd(cmdData commanddata.AddSensor, configService *configmanager
 		cmdData:       cmdData,
 		configService: configService,
 	}
+}
+
+func (c *AddSensorCmd) String() string {
+	return "AddSensorCmd"
 }

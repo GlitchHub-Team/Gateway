@@ -3,30 +3,31 @@ package commandcontrollers
 import (
 	"encoding/json"
 
-	commanddata "Gateway/internal/gateway/commandData"
-	gatewayusecases "Gateway/internal/gateway/gatewayUseCases"
+	commanddata "Gateway/internal/gatewayManager/commandData"
+	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
 
-type InterruptGatewaySubject string
+type ResetGatewaySubject string
 
-type NATSInterruptGatewayController struct {
+type NATSResetGatewayController struct {
 	natsConn *nats.Conn
 	subject  string
-	useCase  gatewayusecases.InterruptGatewayUseCase
+	useCase  gatewayusecases.ResetGatewayUseCase
 	logger   *zap.Logger
 }
 
-type NATSInterruptGatewayDTO struct {
+type NATSResetGatewayDTO struct {
 	GatewayId string `json:"gatewayId"`
 }
 
-func (c *NATSInterruptGatewayController) Listen() {
+func (c *NATSResetGatewayController) Listen() {
 	_, err := c.natsConn.Subscribe(c.subject, func(msg *nats.Msg) {
-		cmd, err := c.parseInterruptGatewayCommand(msg)
+		c.logger.Info("Ricevuto comando su subject: ", zap.String("subject", c.subject))
+		cmd, err := c.parseResetGatewayCommand(msg)
 		if err != nil {
 			err := wrongCommandErrorHandler(err, msg, c.logger)
 			if err != nil {
@@ -34,8 +35,8 @@ func (c *NATSInterruptGatewayController) Listen() {
 			}
 			return
 		}
-		res := c.useCase.InterruptGateway(cmd)
-		err = responseHandler(res, msg)
+		res := c.useCase.ResetGateway(cmd)
+		err = responseHandler(&res, msg)
 		if err != nil {
 			c.logger.Error("Errore durante la comunicazione della risposta", zap.String("subject", c.subject), zap.Error(err))
 		}
@@ -45,8 +46,8 @@ func (c *NATSInterruptGatewayController) Listen() {
 	}
 }
 
-func (c *NATSInterruptGatewayController) parseInterruptGatewayCommand(msg *nats.Msg) (*commanddata.InterruptGateway, error) {
-	var req NATSInterruptGatewayDTO
+func (c *NATSResetGatewayController) parseResetGatewayCommand(msg *nats.Msg) (*commanddata.ResetGateway, error) {
+	var req NATSResetGatewayDTO
 
 	err := json.Unmarshal(msg.Data, &req)
 	if err != nil {
@@ -58,13 +59,13 @@ func (c *NATSInterruptGatewayController) parseInterruptGatewayCommand(msg *nats.
 		return nil, err
 	}
 
-	return &commanddata.InterruptGateway{
+	return &commanddata.ResetGateway{
 		GatewayId: gatewayId,
 	}, nil
 }
 
-func NewNATSInterruptGatewayController(natsConn *nats.Conn, subject InterruptGatewaySubject, useCase gatewayusecases.InterruptGatewayUseCase, logger *zap.Logger) *NATSInterruptGatewayController {
-	return &NATSInterruptGatewayController{
+func NewNATSResetGatewayController(natsConn *nats.Conn, subject ResetGatewaySubject, useCase gatewayusecases.ResetGatewayUseCase, logger *zap.Logger) *NATSResetGatewayController {
+	return &NATSResetGatewayController{
 		natsConn: natsConn,
 		subject:  string(subject),
 		useCase:  useCase,

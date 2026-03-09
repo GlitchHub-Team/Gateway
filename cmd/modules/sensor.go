@@ -8,7 +8,9 @@ import (
 
 var SensorModule = fx.Module("SensorModule",
 	fx.Provide(
-		sensor.NewSensorService,
-		sensor.NewSQLiteSaveSensorDataRepository,
+		fx.Annotate(
+			sensor.NewSQLiteSaveSensorDataRepository,
+			fx.As(new(sensor.SaveSensorDataPort)),
+		),
 	),
 )

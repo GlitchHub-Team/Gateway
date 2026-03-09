@@ -3,30 +3,31 @@ package commandcontrollers
 import (
 	"encoding/json"
 
-	commanddata "Gateway/internal/gateway/commandData"
-	gatewayusecases "Gateway/internal/gateway/gatewayUseCases"
+	commanddata "Gateway/internal/gatewayManager/commandData"
+	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
 
-type CreateGatewaySubject string
+type ResumeGatewaySubject string
 
-type NATSCreateGatewayController struct {
+type NATSResumeGatewayController struct {
 	natsConn *nats.Conn
 	subject  string
-	useCase  gatewayusecases.CreateGatewayUseCase
+	useCase  gatewayusecases.ResumeGatewayUseCase
 	logger   *zap.Logger
 }
 
-type NATSCreateGatewayDTO struct {
+type NATSResumeGatewayDTO struct {
 	GatewayId string `json:"gatewayId"`
 }
 
-func (c *NATSCreateGatewayController) Listen() {
+func (c *NATSResumeGatewayController) Listen() {
 	_, err := c.natsConn.Subscribe(c.subject, func(msg *nats.Msg) {
-		cmd, err := c.parseCreateGatewayCommand(msg)
+		c.logger.Info("Ricevuto comando su subject: ", zap.String("subject", c.subject))
+		cmd, err := c.parseResumeGatewayCommand(msg)
 		if err != nil {
 			err := wrongCommandErrorHandler(err, msg, c.logger)
 			if err != nil {
@@ -34,8 +35,8 @@ func (c *NATSCreateGatewayController) Listen() {
 			}
 			return
 		}
-		res := c.useCase.CreateGateway(cmd)
-		err = responseHandler(res, msg)
+		res := c.useCase.ResumeGateway(cmd)
+		err = responseHandler(&res, msg)
 		if err != nil {
 			c.logger.Error("Errore durante la comunicazione della risposta", zap.String("subject", c.subject), zap.Error(err))
 		}
@@ -45,8 +46,8 @@ func (c *NATSCreateGatewayController) Listen() {
 	}
 }
 
-func (c *NATSCreateGatewayController) parseCreateGatewayCommand(msg *nats.Msg) (*commanddata.CreateGateway, error) {
-	var req NATSCreateGatewayDTO
+func (c *NATSResumeGatewayController) parseResumeGatewayCommand(msg *nats.Msg) (*commanddata.ResumeGateway, error) {
+	var req NATSResumeGatewayDTO
 
 	err := json.Unmarshal(msg.Data, &req)
 	if err != nil {
@@ -58,13 +59,13 @@ func (c *NATSCreateGatewayController) parseCreateGatewayCommand(msg *nats.Msg) (
 		return nil, err
 	}
 
-	return &commanddata.CreateGateway{
+	return &commanddata.ResumeGateway{
 		GatewayId: gatewayId,
 	}, nil
 }
 
-func NewNATSCreateGatewayController(natsConn *nats.Conn, subject CreateGatewaySubject, useCase gatewayusecases.CreateGatewayUseCase, logger *zap.Logger) *NATSCreateGatewayController {
-	return &NATSCreateGatewayController{
+func NewNATSResumeGatewayController(natsConn *nats.Conn, subject ResumeGatewaySubject, useCase gatewayusecases.ResumeGatewayUseCase, logger *zap.Logger) *NATSResumeGatewayController {
+	return &NATSResumeGatewayController{
 		natsConn: natsConn,
 		subject:  string(subject),
 		useCase:  useCase,

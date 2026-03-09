@@ -9,12 +9,12 @@ import (
 )
 
 type SimulatedSensor interface {
-	Start() error
-	Stop() error
+	Start()
+	Stop()
 }
 
-type SaveSensorDataRepository interface {
-	Save(data profiles.GeneratedSensorData) error
+type SaveSensorDataPort interface {
+	Save(data *profiles.GeneratedSensorData) error
 }
 
 type SensorStatus string
@@ -32,9 +32,12 @@ type SensorData struct {
 	Data      []byte
 }
 
+type SensorFrequency int
+
 type Sensor struct {
 	Id        uuid.UUID
 	GatewayId uuid.UUID
 	Profile   profiles.SensorProfile
+	Frequency SensorFrequency
 	Status    SensorStatus
 }

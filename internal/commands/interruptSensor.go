@@ -2,7 +2,7 @@ package commands
 
 import (
 	configmanager "Gateway/internal/configManager"
-	commanddata "Gateway/internal/gateway/commandData"
+	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type InterruptSensorCmd struct {
@@ -20,4 +20,8 @@ func NewInterruptSensorCmd(cmdData commanddata.InterruptSensor, configService *c
 		cmdData:       cmdData,
 		configService: configService,
 	}
+}
+
+func (c *InterruptSensorCmd) String() string {
+	return "InterruptSensorCmd"
 }
