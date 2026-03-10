@@ -1,6 +1,7 @@
 package configrepositories
 
 import (
+	"context"
 	"database/sql"
 
 	configmanager "Gateway/internal/configManager"
@@ -15,11 +16,13 @@ type ConfigDbConnection struct {
 }
 
 type SQLiteConfigRepository struct {
+	ctx          context.Context
 	dbConnection ConfigDbConnection
 }
 
-func NewSQLiteConfigRepository(conn ConfigDbConnection) *SQLiteConfigRepository {
+func NewSQLiteConfigRepository(ctx context.Context, conn ConfigDbConnection) *SQLiteConfigRepository {
 	return &SQLiteConfigRepository{
+		ctx:          ctx,
 		dbConnection: conn,
 	}
 }

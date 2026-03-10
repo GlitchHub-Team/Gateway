@@ -1,7 +1,9 @@
 package buffereddatasender
 
 import (
-	sensor "Gateway/internal/sensor"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type DataSender interface {
@@ -9,10 +11,18 @@ type DataSender interface {
 	Stop()
 }
 
+type sensorData struct {
+	SensorId  uuid.UUID
+	GatewayId uuid.UUID
+	Timestamp time.Time
+	Data      []byte
+}
+
 type SendSensorDataPort interface {
-	Send(data *sensor.SensorData) error
+	Send(data *sensorData) error
 }
 
 type BufferedDataPort interface {
-	GetOrderedBufferedData() ([]*sensor.SensorData, error)
+	GetOrderedBufferedData(gatewayId uuid.UUID) ([]*sensorData, error)
+	CleanBufferedData(data []*sensorData) error
 }

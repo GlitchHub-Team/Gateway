@@ -35,3 +35,11 @@ func NewNATSConnection(address NatsAddress, port NatsPort) *nats.Conn {
 	}
 	return nc
 }
+
+func NewJetStreamContext(nc *nats.Conn) nats.JetStreamContext {
+	js, err := nc.JetStream()
+	if err != nil {
+		log.Fatalf("Error while creating JetStream context: %v", err)
+	}
+	return js
+}

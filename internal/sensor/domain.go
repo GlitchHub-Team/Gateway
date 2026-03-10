@@ -1,8 +1,6 @@
 package sensor
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 
 	profiles "Gateway/internal/sensor/sensorProfiles"
@@ -14,7 +12,7 @@ type SimulatedSensor interface {
 }
 
 type SaveSensorDataPort interface {
-	Save(data *profiles.GeneratedSensorData) error
+	Save(data *profiles.GeneratedSensorData, gatewayId uuid.UUID) error
 }
 
 type SensorStatus string
@@ -23,14 +21,6 @@ const (
 	Active   SensorStatus = "active"
 	Inactive SensorStatus = "inactive"
 )
-
-type SensorData struct {
-	SensorId  uuid.UUID
-	GatewayId uuid.UUID
-	TenantId  uuid.UUID
-	Timestamp time.Time
-	Data      []byte
-}
 
 type SensorFrequency int
 

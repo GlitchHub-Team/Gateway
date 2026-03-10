@@ -69,7 +69,7 @@ func (s *SensorService) Start() {
 
 func (s *SensorService) generateData() error {
 	sensorData := s.sensor.Profile.Generate()
-	if err := s.bufferPort.Save(sensorData); err != nil {
+	if err := s.bufferPort.Save(sensorData, s.sensor.GatewayId); err != nil {
 		return err
 	}
 	return nil
