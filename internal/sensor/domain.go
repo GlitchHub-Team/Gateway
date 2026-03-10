@@ -1,6 +1,8 @@
 package sensor
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 
 	profiles "Gateway/internal/sensor/sensorProfiles"
@@ -22,12 +24,10 @@ const (
 	Inactive SensorStatus = "inactive"
 )
 
-type SensorFrequency int
-
 type Sensor struct {
 	Id        uuid.UUID
 	GatewayId uuid.UUID
 	Profile   profiles.SensorProfile
-	Frequency SensorFrequency
+	Interval  time.Duration
 	Status    SensorStatus
 }

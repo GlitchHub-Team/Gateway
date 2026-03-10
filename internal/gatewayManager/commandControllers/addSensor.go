@@ -2,6 +2,7 @@ package commandcontrollers
 
 import (
 	"encoding/json"
+	"time"
 
 	commanddata "Gateway/internal/gatewayManager/commandData"
 	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
@@ -26,7 +27,7 @@ type NATSAddSensorDTO struct {
 	GatewayId string `json:"gatewayId"`
 	SensorId  string `json:"sensorId"`
 	Profile   string `json:"profile"`
-	Frequency int    `json:"frequency"`
+	Interval  int    `json:"interval"`
 }
 
 func (c *NATSAddSensorController) Listen() {
@@ -74,13 +75,16 @@ func (c *NATSAddSensorController) parseAddSensorCommand(msg *nats.Msg) (*command
 		return nil, err
 	}
 
-	frequency := commanddata.SensorFrequency(req.Frequency)
+	interval := time.Duration(req.Interval) * time.Millisecond
+	if interval <= 0 {
+		return nil, err
+	}
 
 	return &commanddata.AddSensor{
 		GatewayId: gatewayId,
 		SensorId:  sensorId,
 		Profile:   profile,
-		Frequency: frequency,
+		Interval:  interval,
 	}, nil
 }
 

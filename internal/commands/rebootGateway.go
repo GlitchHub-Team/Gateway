@@ -7,7 +7,8 @@ import (
 
 type RebootGatewayCmd struct {
 	cmdData       commanddata.RebootGateway
-	configService *configmanager.GatewayRebooter
+	configService *configmanager.GatewayRebooterPort
+	errChannel    chan error
 }
 
 func (c *RebootGatewayCmd) Execute() error {
@@ -15,10 +16,11 @@ func (c *RebootGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewRebootGatewayCmd(cmdData commanddata.RebootGateway, configService *configmanager.GatewayRebooter) *RebootGatewayCmd {
+func NewRebootGatewayCmd(cmdData commanddata.RebootGateway, configService *configmanager.GatewayRebooterPort, errChannel chan error) *RebootGatewayCmd {
 	return &RebootGatewayCmd{
 		cmdData:       cmdData,
 		configService: configService,
+		errChannel:    errChannel,
 	}
 }
 

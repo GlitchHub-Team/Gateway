@@ -99,5 +99,8 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 }
 
 func (b *BufferedDataSenderService) Stop() {
-	b.stopChannel <- struct{}{}
+	select {
+	case b.stopChannel <- struct{}{}:
+	default:
+	}
 }

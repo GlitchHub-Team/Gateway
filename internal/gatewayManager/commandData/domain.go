@@ -1,6 +1,8 @@
 package commanddata
 
 import (
+	"time"
+
 	profiles "Gateway/internal/sensor/sensorProfiles"
 
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type CommissionGateway struct {
 
 type CreateGateway struct {
 	GatewayId uuid.UUID
+	Interval  time.Duration
 }
 
 type DecommissionGateway struct {
@@ -61,7 +64,7 @@ type AddSensor struct {
 	GatewayId uuid.UUID
 	SensorId  uuid.UUID
 	Profile   profiles.SensorProfile
-	Frequency SensorFrequency
+	Interval  time.Duration
 }
 
 type DeleteSensor struct {

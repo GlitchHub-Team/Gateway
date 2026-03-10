@@ -7,7 +7,8 @@ import (
 
 type DecommissionGatewayCmd struct {
 	cmdData       commanddata.DecommissionGateway
-	configService *configmanager.GatewayDecommissioner
+	configService *configmanager.GatewayDecommissionerPort
+	errChannel    chan error
 }
 
 func (c *DecommissionGatewayCmd) Execute() error {
@@ -15,10 +16,11 @@ func (c *DecommissionGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewDecommissionGatewayCmd(cmdData commanddata.DecommissionGateway, configService *configmanager.GatewayDecommissioner) *DecommissionGatewayCmd {
+func NewDecommissionGatewayCmd(cmdData commanddata.DecommissionGateway, configService *configmanager.GatewayDecommissionerPort, errChannel chan error) *DecommissionGatewayCmd {
 	return &DecommissionGatewayCmd{
 		cmdData:       cmdData,
 		configService: configService,
+		errChannel:    errChannel,
 	}
 }
 

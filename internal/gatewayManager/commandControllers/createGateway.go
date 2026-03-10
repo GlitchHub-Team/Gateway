@@ -2,6 +2,7 @@ package commandcontrollers
 
 import (
 	"encoding/json"
+	"time"
 
 	commanddata "Gateway/internal/gatewayManager/commandData"
 	gatewayusecases "Gateway/internal/gatewayManager/gatewayUseCases"
@@ -22,6 +23,7 @@ type NATSCreateGatewayController struct {
 
 type NATSCreateGatewayDTO struct {
 	GatewayId string `json:"gatewayId"`
+	Interval  int    `json:"interval"`
 }
 
 func (c *NATSCreateGatewayController) Listen() {
@@ -61,6 +63,7 @@ func (c *NATSCreateGatewayController) parseCreateGatewayCommand(msg *nats.Msg) (
 
 	return &commanddata.CreateGateway{
 		GatewayId: gatewayId,
+		Interval:  time.Duration(req.Interval) * time.Millisecond,
 	}, nil
 }
 

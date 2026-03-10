@@ -7,7 +7,8 @@ import (
 
 type ResumeSensorCmd struct {
 	cmdData       commanddata.ResumeSensor
-	configService *configmanager.SensorResumer
+	configService *configmanager.SensorResumerPort
+	errChannel    chan error
 }
 
 func (c *ResumeSensorCmd) Execute() error {
@@ -15,10 +16,11 @@ func (c *ResumeSensorCmd) Execute() error {
 	return nil
 }
 
-func NewResumeSensorCmd(cmdData commanddata.ResumeSensor, configService *configmanager.SensorResumer) *ResumeSensorCmd {
+func NewResumeSensorCmd(cmdData commanddata.ResumeSensor, configService *configmanager.SensorResumerPort, errChannel chan error) *ResumeSensorCmd {
 	return &ResumeSensorCmd{
 		cmdData:       cmdData,
 		configService: configService,
+		errChannel:    errChannel,
 	}
 }
 

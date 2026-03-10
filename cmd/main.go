@@ -12,8 +12,8 @@ import (
 	natsserver "Gateway/cmd/external/natsServer"
 	"Gateway/cmd/logger"
 	modules "Gateway/cmd/modules"
-	gatmanager "Gateway/internal/gatewayManager"
 	commandcontrollers "Gateway/internal/gatewayManager/commandControllers"
+	gatewayservices "Gateway/internal/gatewayManager/gatewayServices"
 	sensorprofiles "Gateway/internal/sensor/sensorProfiles"
 )
 
@@ -23,7 +23,6 @@ func main() {
 		fx.WithLogger(logger.GetFxLogger),
 
 		fx.Supply(commandcontrollers.AddSensorSubject("commands.addsensor")),
-		fx.Supply(commandcontrollers.ChangeSensorFrequencySubject("commands.changesensorfrequency")),
 		fx.Supply(commandcontrollers.CreateGatewaySubject("commands.creategateway")),
 		fx.Supply(commandcontrollers.CommissionGatewaySubject("commands.commissiongateway")),
 		fx.Supply(commandcontrollers.DecommissionGatewaySubject("commands.decommissiongateway")),
@@ -62,7 +61,7 @@ type InitParams struct {
 	Lc          fx.Lifecycle
 	Controllers []commandcontrollers.NATSCommandController `group:"nats_controllers"`
 
-	Loader gatmanager.GatewaysLoader
+	Loader gatewayservices.GatewaysLoader
 	Nc     *nats.Conn
 	Cancel context.CancelFunc
 	Logger *zap.Logger

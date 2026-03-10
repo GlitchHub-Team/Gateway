@@ -2,6 +2,7 @@ package configrepositories
 
 import (
 	"fmt"
+	"time"
 
 	configmanager "Gateway/internal/configManager"
 	"Gateway/internal/sensor"
@@ -12,7 +13,7 @@ import (
 
 func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.Gateway, error) {
 	query := `
-		SELECT *
+		SELECT id, tenantId, status, interval
 		FROM gateways
 	`
 	rows, err := r.dbConnection.QueryContext(r.ctx, query)
@@ -24,7 +25,8 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 	for rows.Next() {
 		var gatewayId, tenantId uuid.UUID
 		var statusStr string
-		if err := rows.Scan(&gatewayId, &tenantId, &statusStr); err != nil {
+		var interval int
+		if err := rows.Scan(&gatewayId, &tenantId, &statusStr, &interval); err != nil {
 			return nil, fmt.Errorf("fallito a scansionare una riga gateway: %w", err)
 		}
 
@@ -33,17 +35,12 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 			return nil, fmt.Errorf("fallito a recuperare i sensori del gateway %s: %w", gatewayId, err)
 		}
 
-		frequencies, err := r.loadFrequencies(gatewayId)
-		if err != nil {
-			return nil, fmt.Errorf("fallito a recuperare le frequenze del gateway %s: %w", gatewayId, err)
-		}
-
 		gateways[gatewayId] = &configmanager.Gateway{
-			Id:                       gatewayId,
-			TenantId:                 tenantId,
-			Status:                   configmanager.GatewayStatus(statusStr),
-			Sensors:                  sensors,
-			SensorProfileFrequencies: frequencies,
+			Id:       gatewayId,
+			TenantId: &tenantId,
+			Status:   configmanager.GatewayStatus(statusStr),
+			Sensors:  sensors,
+			Interval: time.Duration(interval) * time.Millisecond,
 		}
 	}
 
@@ -55,7 +52,7 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 }
 
 func (r *SQLiteConfigRepository) loadSensors(gatewayId uuid.UUID) (map[uuid.UUID]*sensor.Sensor, error) {
-	query := `SELECT id, profile, status, frequency FROM sensors WHERE gatewayId = ?`
+	query := `SELECT id, profile, status, interval FROM sensors WHERE gatewayId = ?`
 	rows, err := r.dbConnection.QueryContext(r.ctx, query, gatewayId.String())
 	if err != nil {
 		return nil, err
@@ -65,8 +62,8 @@ func (r *SQLiteConfigRepository) loadSensors(gatewayId uuid.UUID) (map[uuid.UUID
 	for rows.Next() {
 		var sensorId uuid.UUID
 		var profileStr, statusStr string
-		var frequency int
-		if err := rows.Scan(&sensorId, &profileStr, &statusStr, &frequency); err != nil {
+		var interval int
+		if err := rows.Scan(&sensorId, &profileStr, &statusStr, &interval); err != nil {
 			return nil, err
 		}
 
@@ -80,7 +77,7 @@ func (r *SQLiteConfigRepository) loadSensors(gatewayId uuid.UUID) (map[uuid.UUID
 			GatewayId: gatewayId,
 			Profile:   profile,
 			Status:    sensor.SensorStatus(statusStr),
-			Frequency: sensor.SensorFrequency(frequency),
+			Interval:  time.Duration(interval) * time.Millisecond,
 		}
 	}
 
@@ -91,6 +88,8 @@ func (r *SQLiteConfigRepository) loadSensors(gatewayId uuid.UUID) (map[uuid.UUID
 	return sensors, nil
 }
 
+//Requisito valutato troppo oneroso da implementare, tuttavia è possibile reimplementare il campo presente nel gateway
+/*
 func (r *SQLiteConfigRepository) loadFrequencies(gatewayId uuid.UUID) (map[profiles.SensorProfile]configmanager.ProfileSensorFrequency, error) {
 	query := `SELECT sensorType, frequency FROM sensor_type_frequencies WHERE gatewayId = ?`
 	rows, err := r.dbConnection.QueryContext(r.ctx, query, gatewayId.String())
@@ -111,7 +110,7 @@ func (r *SQLiteConfigRepository) loadFrequencies(gatewayId uuid.UUID) (map[profi
 			return nil, fmt.Errorf("fallito a fare il parsing del profilo: %s", sensorTypeStr)
 		}
 
-		frequencies[profile] = configmanager.ProfileSensorFrequency(frequency)
+		frequencies[profile] = configmanager.ProfileSensorFrequency(time.Duration(frequency) * time.Millisecond)
 	}
 
 	if err := rows.Close(); err != nil {
@@ -120,3 +119,4 @@ func (r *SQLiteConfigRepository) loadFrequencies(gatewayId uuid.UUID) (map[profi
 
 	return frequencies, nil
 }
+*/

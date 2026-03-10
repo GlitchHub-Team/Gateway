@@ -9,10 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	DefaultFrequency = 5 * time.Second
-)
-
 type SensorService struct {
 	sensor      *Sensor
 	bufferPort  SaveSensorDataPort
@@ -34,7 +30,7 @@ func NewSensorService(sensor *Sensor, bufferPort SaveSensorDataPort, cmdChannel 
 }
 
 func (s *SensorService) Start() {
-	ticker := time.NewTicker(DefaultFrequency)
+	ticker := time.NewTicker(s.sensor.Interval)
 
 	defer ticker.Stop()
 	for {
@@ -76,5 +72,8 @@ func (s *SensorService) generateData() error {
 }
 
 func (s *SensorService) Stop() {
-	s.stopChannel <- struct{}{}
+	select {
+	case s.stopChannel <- struct{}{}:
+	default:
+	}
 }

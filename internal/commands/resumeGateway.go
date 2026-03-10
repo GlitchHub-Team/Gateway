@@ -7,7 +7,8 @@ import (
 
 type ResumeGatewayCmd struct {
 	cmdData       commanddata.ResumeGateway
-	configService *configmanager.GatewayResumer
+	configService *configmanager.GatewayResumerPort
+	errChannel    chan error
 }
 
 func (c *ResumeGatewayCmd) Execute() error {
@@ -15,10 +16,11 @@ func (c *ResumeGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewResumeGatewayCmd(cmdData commanddata.ResumeGateway, configService *configmanager.GatewayResumer) *ResumeGatewayCmd {
+func NewResumeGatewayCmd(cmdData commanddata.ResumeGateway, configService *configmanager.GatewayResumerPort, errChannel chan error) *ResumeGatewayCmd {
 	return &ResumeGatewayCmd{
 		cmdData:       cmdData,
 		configService: configService,
+		errChannel:    errChannel,
 	}
 }
 

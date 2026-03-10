@@ -15,21 +15,8 @@ func createGatewayTable(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS gateways (
 		id VARCHAR(255) PRIMARY KEY,
 		tenantId VARCHAR(255) NOT NULL,
-		status VARCHAR(255) NOT NULL
-	);
-	`
-	_, err := db.ExecContext(context.Background(), query)
-	return err
-}
-
-func createSensorTypeFrequencyTable(db *sql.DB) error {
-	query := `
-	CREATE TABLE IF NOT EXISTS sensor_type_frequencies (
-		gatewayId VARCHAR(255) NOT NULL,
-		sensorType VARCHAR(255) NOT NULL,
-		frequency INT NOT NULL,
-		PRIMARY KEY (gatewayId, sensorType),
-		FOREIGN KEY (gatewayId) REFERENCES gateways(id)
+		status VARCHAR(255) NOT NULL,
+		interval INT NOT NULL
 	);
 	`
 	_, err := db.ExecContext(context.Background(), query)
@@ -42,8 +29,8 @@ func createSensorTable(db *sql.DB) error {
 		id VARCHAR(255),
 		gatewayId VARCHAR(255) NOT NULL,
 		profile VARCHAR(255) NOT NULL,
-		frequency INT NOT NULL,
 		status VARCHAR(255) NOT NULL,
+		interval INT NOT NULL,
 		PRIMARY KEY (id, gatewayId),
 		FOREIGN KEY (gatewayId) REFERENCES gateways(id)
 	);
@@ -68,10 +55,21 @@ func NewGatewayDatabase() configrepositories.ConfigDbConnection {
 		log.Fatalf("Error while creating sensors table: %v", err)
 	}
 
-	err = createSensorTypeFrequencyTable(db)
-	if err != nil {
-		log.Fatalf("Error while creating sensor type frequencies table: %v", err)
-	}
-
 	return configrepositories.ConfigDbConnection{DB: db}
 }
+
+/*
+func createSensorTypeFrequencyTable(db *sql.DB) error {
+	query := `
+	CREATE TABLE IF NOT EXISTS sensor_type_frequencies (
+		gatewayId VARCHAR(255) NOT NULL,
+		sensorType VARCHAR(255) NOT NULL,
+		frequency INT NOT NULL,
+		PRIMARY KEY (gatewayId, sensorType),
+		FOREIGN KEY (gatewayId) REFERENCES gateways(id)
+	);
+	`
+	_, err := db.ExecContext(context.Background(), query)
+	return err
+}
+*/

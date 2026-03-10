@@ -7,7 +7,8 @@ import (
 
 type InterruptSensorCmd struct {
 	cmdData       commanddata.InterruptSensor
-	configService *configmanager.SensorInterrupter
+	configService *configmanager.SensorInterrupterPort
+	errChannel    chan error
 }
 
 func (c *InterruptSensorCmd) Execute() error {
@@ -15,10 +16,11 @@ func (c *InterruptSensorCmd) Execute() error {
 	return nil
 }
 
-func NewInterruptSensorCmd(cmdData commanddata.InterruptSensor, configService *configmanager.SensorInterrupter) *InterruptSensorCmd {
+func NewInterruptSensorCmd(cmdData commanddata.InterruptSensor, configService *configmanager.SensorInterrupterPort, errChannel chan error) *InterruptSensorCmd {
 	return &InterruptSensorCmd{
 		cmdData:       cmdData,
 		configService: configService,
+		errChannel:    errChannel,
 	}
 }
 

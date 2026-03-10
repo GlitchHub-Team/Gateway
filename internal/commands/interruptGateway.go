@@ -7,7 +7,8 @@ import (
 
 type InterruptGatewayCmd struct {
 	cmdData       commanddata.InterruptGateway
-	configService *configmanager.GatewayInterrupter
+	configService *configmanager.GatewayInterrupterPort
+	errChannel    chan error
 }
 
 func (c *InterruptGatewayCmd) Execute() error {
@@ -15,10 +16,11 @@ func (c *InterruptGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewInterruptGatewayCmd(cmdData commanddata.InterruptGateway, configService *configmanager.GatewayInterrupter) *InterruptGatewayCmd {
+func NewInterruptGatewayCmd(cmdData commanddata.InterruptGateway, configService *configmanager.GatewayInterrupterPort, errChannel chan error) *InterruptGatewayCmd {
 	return &InterruptGatewayCmd{
 		cmdData:       cmdData,
 		configService: configService,
+		errChannel:    errChannel,
 	}
 }
 

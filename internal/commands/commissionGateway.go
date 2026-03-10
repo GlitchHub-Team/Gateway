@@ -7,7 +7,8 @@ import (
 
 type CommissionGatewayCmd struct {
 	cmdData       commanddata.CommissionGateway
-	configService *configmanager.GatewayCommissioner
+	configService *configmanager.GatewayCommissionerPort
+	errChannel    chan error
 }
 
 func (c *CommissionGatewayCmd) Execute() error {
@@ -15,10 +16,11 @@ func (c *CommissionGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewCommissionGatewayCmd(cmdData commanddata.CommissionGateway, configService *configmanager.GatewayCommissioner) *CommissionGatewayCmd {
+func NewCommissionGatewayCmd(cmdData commanddata.CommissionGateway, configService *configmanager.GatewayCommissionerPort, errChannel chan error) *CommissionGatewayCmd {
 	return &CommissionGatewayCmd{
 		cmdData:       cmdData,
 		configService: configService,
+		errChannel:    errChannel,
 	}
 }
 
