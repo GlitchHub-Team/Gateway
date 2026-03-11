@@ -1,11 +1,12 @@
 package gatewayservices
 
 import (
+	"context"
+
 	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
 	gatewaymanager "Gateway/internal/gatewayManager"
 	"Gateway/internal/sensor"
-	"context"
 
 	"go.uber.org/zap"
 )

@@ -12,8 +12,8 @@ import (
 type GatewayStatus string
 
 const (
-	Active   GatewayStatus = "active"
-	Inactive GatewayStatus = "inactive"
+	Active         GatewayStatus = "active"
+	Inactive       GatewayStatus = "inactive"
 	Decommissioned GatewayStatus = "decommissioned"
 )
 

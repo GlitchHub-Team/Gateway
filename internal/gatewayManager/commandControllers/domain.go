@@ -1,9 +1,10 @@
 package commandcontrollers
 
 import (
-	gatewayservices "Gateway/internal/gatewayManager/gatewayServices"
 	"encoding/json"
 	"fmt"
+
+	gatewayservices "Gateway/internal/gatewayManager/gatewayServices"
 
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"

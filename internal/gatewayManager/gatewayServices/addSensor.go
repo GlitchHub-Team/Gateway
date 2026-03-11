@@ -6,8 +6,8 @@ import (
 )
 
 func (s *GatewayManagerService) AddSensor(cmdData *commanddata.AddSensor) Response {
-	//controllo che il gatewayId esista, se no errore
-	//controllo che non ci sia un sensore nel gateway con lo stesso id
+	// controllo che il gatewayId esista, se no errore
+	// controllo che non ci sia un sensore nel gateway con lo stesso id
 	commands.NewAddSensorCmd(
 		cmdData,
 		s.configPort,
