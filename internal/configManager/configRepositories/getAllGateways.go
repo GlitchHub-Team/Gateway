@@ -23,7 +23,8 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 
 	gateways := make(map[uuid.UUID]*configmanager.Gateway)
 	for rows.Next() {
-		var gatewayId, tenantId uuid.UUID
+		var gatewayId uuid.UUID
+		var tenantId *uuid.UUID
 		var statusStr string
 		var interval int
 		if err := rows.Scan(&gatewayId, &tenantId, &statusStr, &interval); err != nil {
@@ -37,7 +38,7 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 
 		gateways[gatewayId] = &configmanager.Gateway{
 			Id:       gatewayId,
-			TenantId: &tenantId,
+			TenantId: tenantId,
 			Status:   configmanager.GatewayStatus(statusStr),
 			Sensors:  sensors,
 			Interval: time.Duration(interval) * time.Millisecond,
@@ -48,7 +49,7 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 		return nil, fmt.Errorf("fallito a chiudere le righe nel caricamento dei gateway: %w", err)
 	}
 
-	return gateways, rows.Err()
+	return gateways, nil
 }
 
 func (r *SQLiteConfigRepository) loadSensors(gatewayId uuid.UUID) (map[uuid.UUID]*sensor.Sensor, error) {

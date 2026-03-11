@@ -1,47 +1,35 @@
 package commands
 
 import (
-	"fmt"
-
+	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
-	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
+	"time"
 )
 
 type ResetGatewayCmd struct {
-	cmdData        *commanddata.ResetGateway
-	configService  configmanager.GatewayResetterPort
-	gatewayWorkers *gatewaymanager.GatewayWorkers
+	cmdData             *commanddata.ResetGateway
+	sender              buffereddatasender.DataSenderResetter
+	gatewayResetterPort configmanager.GatewayResetterPort
 }
+
+const (
+	defaultInterval = 5 * time.Second
+)
 
 func (c *ResetGatewayCmd) Execute() error {
-	if err := c.configService.ResetGateway(c.cmdData); err != nil {
+	if err := c.gatewayResetterPort.ResetGateway(c.cmdData, defaultInterval); err != nil {
 		return err
 	}
 
-	c.gatewayWorkers.Mu.RLock()
-	worker, exists := c.gatewayWorkers.Workers[c.cmdData.GatewayId]
-	c.gatewayWorkers.Mu.RUnlock()
-
-	if !exists {
-		return fmt.Errorf("nessun gateway trovato per il reset, id %s", c.cmdData.GatewayId)
-	}
-
-	c.gatewayWorkers.Mu.Lock()
-	if err := worker.Reset(); err != nil {
-		c.gatewayWorkers.Mu.Unlock()
-		return err
-	}
-	c.gatewayWorkers.Mu.Unlock()
-
-	return nil
+	return c.sender.Reset(defaultInterval)
 }
 
-func NewResetGatewayCmd(cmdData *commanddata.ResetGateway, configService configmanager.GatewayResetterPort, gateways *gatewaymanager.GatewayWorkers) *ResetGatewayCmd {
+func NewResetGatewayCmd(cmdData *commanddata.ResetGateway, sender buffereddatasender.DataSenderResetter, gatewayResetterPort configmanager.GatewayResetterPort) *ResetGatewayCmd {
 	return &ResetGatewayCmd{
-		cmdData:        cmdData,
-		configService:  configService,
-		gatewayWorkers: gateways,
+		cmdData:             cmdData,
+		sender:              sender,
+		gatewayResetterPort: gatewayResetterPort,
 	}
 }
 

@@ -14,7 +14,7 @@ func createGatewayTable(db *sql.DB) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS gateways (
 		id VARCHAR(255) PRIMARY KEY,
-		tenantId VARCHAR(255) NOT NULL,
+		tenantId VARCHAR(255),
 		status VARCHAR(255) NOT NULL,
 		interval INT NOT NULL
 	);

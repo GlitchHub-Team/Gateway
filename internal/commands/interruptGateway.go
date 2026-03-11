@@ -1,44 +1,31 @@
 package commands
 
 import (
-	"fmt"
-
+	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
-	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type InterruptGatewayCmd struct {
-	cmdData        *commanddata.InterruptGateway
-	configService  configmanager.GatewayInterrupterPort
-	gatewayWorkers *gatewaymanager.GatewayWorkers
+	cmdData                *commanddata.InterruptGateway
+	sender                 buffereddatasender.DataSenderInterrupter
+	gatewayInterrupterPort configmanager.GatewayInterrupterPort
 }
 
 func (c *InterruptGatewayCmd) Execute() error {
-	if err := c.configService.InterruptGateway(c.cmdData); err != nil {
+	if err := c.gatewayInterrupterPort.InterruptGateway(c.cmdData); err != nil {
 		return err
 	}
 
-	c.gatewayWorkers.Mu.RLock()
-	worker, exists := c.gatewayWorkers.Workers[c.cmdData.GatewayId]
-	c.gatewayWorkers.Mu.RUnlock()
-
-	if !exists {
-		return fmt.Errorf("nessun gateway trovato per l'interruzione, id %s", c.cmdData.GatewayId)
-	}
-
-	c.gatewayWorkers.Mu.Lock()
-	worker.Interrupt()
-	c.gatewayWorkers.Mu.Unlock()
-
+	c.sender.Interrupt()
 	return nil
 }
 
-func NewInterruptGatewayCmd(cmdData *commanddata.InterruptGateway, configService configmanager.GatewayInterrupterPort, gatewayWorkers *gatewaymanager.GatewayWorkers) *InterruptGatewayCmd {
+func NewInterruptGatewayCmd(cmdData *commanddata.InterruptGateway, sender buffereddatasender.DataSenderInterrupter, gatewayInterrupterPort configmanager.GatewayInterrupterPort) *InterruptGatewayCmd {
 	return &InterruptGatewayCmd{
-		cmdData:        cmdData,
-		configService:  configService,
-		gatewayWorkers: gatewayWorkers,
+		cmdData:                cmdData,
+		sender:                 sender,
+		gatewayInterrupterPort: gatewayInterrupterPort,
 	}
 }
 

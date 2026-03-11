@@ -3,6 +3,7 @@ package configrepositories
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	configmanager "Gateway/internal/configManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
@@ -77,7 +78,7 @@ func (r *SQLiteConfigRepository) RebootGateway(cmdData *commanddata.RebootGatewa
 	return nil
 }
 
-func (r *SQLiteConfigRepository) ResetGateway(cmdData *commanddata.ResetGateway) error {
+func (r *SQLiteConfigRepository) ResetGateway(cmdData *commanddata.ResetGateway, defaultInterval time.Duration) error {
 	// TODO: Implement database update
 	return nil
 }

@@ -1,44 +1,31 @@
 package commands
 
 import (
-	"fmt"
-
+	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
-	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type ResumeGatewayCmd struct {
-	cmdData        *commanddata.ResumeGateway
-	configService  configmanager.GatewayResumerPort
-	gatewayWorkers *gatewaymanager.GatewayWorkers
+	cmdData     *commanddata.ResumeGateway
+	resumerPort configmanager.GatewayResumerPort
+	sender      buffereddatasender.DataSenderResumer
 }
 
 func (c *ResumeGatewayCmd) Execute() error {
-	if err := c.configService.ResumeGateway(c.cmdData); err != nil {
+	if err := c.resumerPort.ResumeGateway(c.cmdData); err != nil {
 		return err
 	}
 
-	c.gatewayWorkers.Mu.RLock()
-	worker, exists := c.gatewayWorkers.Workers[c.cmdData.GatewayId]
-	c.gatewayWorkers.Mu.RUnlock()
-
-	if !exists {
-		return fmt.Errorf("nessun gateway trovato per la ripresa, id %s", c.cmdData.GatewayId)
-	}
-
-	c.gatewayWorkers.Mu.Lock()
-	worker.Resume()
-	c.gatewayWorkers.Mu.Unlock()
-
+	c.sender.Resume()
 	return nil
 }
 
-func NewResumeGatewayCmd(cmdData *commanddata.ResumeGateway, configService configmanager.GatewayResumerPort, gatewayWorkers *gatewaymanager.GatewayWorkers) *ResumeGatewayCmd {
+func NewResumeGatewayCmd(cmdData *commanddata.ResumeGateway, sender buffereddatasender.DataSenderResumer, resumerPort configmanager.GatewayResumerPort) *ResumeGatewayCmd {
 	return &ResumeGatewayCmd{
-		cmdData:        cmdData,
-		configService:  configService,
-		gatewayWorkers: gatewayWorkers,
+		cmdData:     cmdData,
+		resumerPort: resumerPort,
+		sender:      sender,
 	}
 }
 

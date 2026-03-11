@@ -10,50 +10,46 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	defaultInterval = 5 * time.Second
-)
-
 type BufferedDataSenderService struct {
 	gateway          *configmanager.Gateway
 	sendDataRepo     SendSensorDataPort
 	bufferedDataPort BufferedDataPort
 	cmdChannel       chan domain.BaseCommand
-	stopChannel      chan struct{}
 	errChanel        chan error
 	ctx              context.Context
 	logger           *zap.Logger
+	ticker           *time.Ticker
 }
 
-func NewBufferedDataSenderService(gateway *configmanager.Gateway, sendDataRepo SendSensorDataPort, bufferedDataPort BufferedDataPort, cmdChannel chan domain.BaseCommand, stopChannel chan struct{}, errChannel chan error, ctx context.Context, logger *zap.Logger) *BufferedDataSenderService {
+func NewBufferedDataSenderService(gateway *configmanager.Gateway, sendDataRepo SendSensorDataPort, bufferedDataPort BufferedDataPort, cmdChannel chan domain.BaseCommand, errChannel chan error, ctx context.Context, logger *zap.Logger) *BufferedDataSenderService {
 	return &BufferedDataSenderService{
 		gateway:          gateway,
 		sendDataRepo:     sendDataRepo,
 		bufferedDataPort: bufferedDataPort,
 		cmdChannel:       cmdChannel,
-		stopChannel:      stopChannel,
 		errChanel:        errChannel,
 		ctx:              ctx,
 		logger:           logger,
+		ticker:           time.NewTicker(gateway.Interval),
 	}
 }
 
 func (b *BufferedDataSenderService) Start() {
-	ticker := time.NewTicker(b.gateway.Interval)
+	defer b.ticker.Stop()
 
-	defer ticker.Stop()
-	for {
+	for b.gateway.Status != configmanager.Stopped {
 		select {
 		case cmd := <-b.cmdChannel:
-			if err := cmd.Execute(); err != nil {
+			err := cmd.Execute()
+			if err != nil {
 				b.logger.Error("Errore nell'esecuzione del comando",
 					zap.String("command", cmd.String()),
 					zap.String("gatewayId", b.gateway.Id.String()),
 					zap.Error(err),
 				)
-				b.errChanel <- err
 			}
-		case <-ticker.C:
+			b.errChanel <- err
+		case <-b.ticker.C:
 			if b.gateway.Status == configmanager.Inactive {
 				continue
 			}
@@ -64,10 +60,8 @@ func (b *BufferedDataSenderService) Start() {
 					zap.Error(err),
 				)
 			}
-		case <-b.stopChannel:
-			return
 		case <-b.ctx.Done():
-			b.logger.Error("Gateway interrotto",
+			b.logger.Warn("Gateway interrotto",
 				zap.String("gatewayId", b.gateway.Id.String()),
 				zap.Error(b.ctx.Err()),
 			)
@@ -104,11 +98,26 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 	return nil
 }
 
-func (b *BufferedDataSenderService) Stop() {
-	select {
-	case b.stopChannel <- struct{}{}:
-	default:
+func (b *BufferedDataSenderService) Hello() error {
+	if err := b.sendDataRepo.Hello(b.gateway.Id); err != nil {
+		return err
 	}
+
+	return nil
+}
+
+func (b *BufferedDataSenderService) Reset(defaultInterval time.Duration) error {
+	b.gateway.Interval = defaultInterval
+	b.ticker.Reset(defaultInterval)
+	if err := b.bufferedDataPort.CleanWholeBuffer(b.gateway.Id); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Alert: in caso si vogliano chiamare dall'esterno della goroutine bisogna istanziare un mutex
+func (b *BufferedDataSenderService) Stop() {
+	b.gateway.Status = configmanager.Stopped
 }
 
 func (b *BufferedDataSenderService) Interrupt() {
@@ -117,20 +126,4 @@ func (b *BufferedDataSenderService) Interrupt() {
 
 func (b *BufferedDataSenderService) Resume() {
 	b.gateway.Status = configmanager.Active
-}
-
-func (b *BufferedDataSenderService) Reset() error {
-	b.gateway.Interval = defaultInterval
-	if err := b.bufferedDataPort.CleanWholeBuffer(b.gateway.Id); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (b *BufferedDataSenderService) Hello() error {
-	if err := b.sendDataRepo.Hello(b.gateway.Id); err != nil {
-		return err
-	}
-
-	return nil
 }

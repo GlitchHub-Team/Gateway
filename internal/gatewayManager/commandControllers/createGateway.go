@@ -2,6 +2,7 @@ package commandcontrollers
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	commanddata "Gateway/internal/gatewayManager/commandData"
@@ -61,9 +62,14 @@ func (c *NATSCreateGatewayController) parseCreateGatewayCommand(msg *nats.Msg) (
 		return nil, err
 	}
 
+	interval := time.Duration(req.Interval) * time.Millisecond
+	if interval <= 0 {
+		return nil, fmt.Errorf("intervallo non valido: %d", req.Interval)
+	}
+
 	return &commanddata.CreateGateway{
 		GatewayId: gatewayId,
-		Interval:  time.Duration(req.Interval) * time.Millisecond,
+		Interval:  interval,
 	}, nil
 }
 
