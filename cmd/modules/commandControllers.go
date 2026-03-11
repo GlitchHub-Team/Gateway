@@ -1,0 +1,61 @@
+package modules
+
+import (
+	commandControllers "Gateway/internal/gatewayManager/commandControllers"
+
+	"go.uber.org/fx"
+)
+
+var CommandControllersModule = fx.Module("CommandControllersModule",
+	fx.Provide(
+		fx.Annotate(
+			commandControllers.NewNATSAddSensorController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSCommissionGatewayController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSDecommissionGatewayController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSDeleteGatewayController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSCreateGatewayController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSDeleteSensorController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSInterruptGatewayController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSInterruptSensorController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSResumeSensorController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSResetGatewayController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSResumeGatewayController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+		fx.Annotate(commandControllers.NewNATSRebootGatewayController,
+			fx.As(new(commandControllers.NATSCommandController)),
+			fx.ResultTags(`group:"nats_controllers"`),
+		),
+	),
+)

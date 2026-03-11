@@ -10,3 +10,6 @@ MVP repository per lo sviluppo Gateway
 - Analisi statica: `golangci-lint run`
 - Formattazione(automatica on save): gofumpt -w nomefile.go
 - Delve Debugger: premere F5 per avviare il debugger e per mettere i breakpoint basta mettere i pallini rossi alla sinistra del codice
+
+# Organizzazione cartelle
+Le *cartelle* e di conseguenza i *package* sono organizzati per *Component* come suggerito nell'ultimo capitolo di "Clean Architecture" di Robert C. Martin.
