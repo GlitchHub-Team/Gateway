@@ -1,13 +1,14 @@
 package commands
 
 import (
+	"context"
+
 	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
 	"Gateway/internal/domain"
 	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 	"Gateway/internal/sensor"
-	"context"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -32,7 +33,7 @@ func (c *CreateGatewayCmd) Execute() error {
 		Id:       c.cmdData.GatewayId,
 		TenantId: nil,
 		Sensors:  make(map[uuid.UUID]*sensor.Sensor),
-		Status:   configmanager.Inactive,
+		Status:   configmanager.Decommissioned,
 		Interval: c.cmdData.Interval,
 	}
 
@@ -42,9 +43,18 @@ func (c *CreateGatewayCmd) Execute() error {
 		c.bufferedDataPort,
 		make(chan domain.BaseCommand),
 		make(chan struct{}),
+		make(chan error),
 		c.ctx,
 		c.logger,
 	)
+
+	if err := dataSender.Hello(); err != nil {
+		c.logger.Error("Errore nell'invio del messaggio di hello del gateway, gatewayId",
+			zap.String("gatewayId", gateway.Id.String()),
+			zap.Error(err),
+		)
+		return err
+	}
 
 	c.gatewayWorkers.Mu.Lock()
 	c.gatewayWorkers.Workers[c.cmdData.GatewayId] = dataSender

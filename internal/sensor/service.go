@@ -14,16 +14,18 @@ type SensorService struct {
 	bufferPort  SaveSensorDataPort
 	cmdChannel  chan domain.BaseCommand
 	stopChannel chan struct{}
+	errChanel   chan error
 	ctx         context.Context
 	logger      *zap.Logger
 }
 
-func NewSensorService(sensor *Sensor, bufferPort SaveSensorDataPort, cmdChannel chan domain.BaseCommand, stopChannel chan struct{}, ctx context.Context, logger *zap.Logger) *SensorService {
+func NewSensorService(sensor *Sensor, bufferPort SaveSensorDataPort, cmdChannel chan domain.BaseCommand, stopChannel chan struct{}, errChannel chan error, ctx context.Context, logger *zap.Logger) *SensorService {
 	return &SensorService{
 		sensor:      sensor,
 		bufferPort:  bufferPort,
 		cmdChannel:  cmdChannel,
 		stopChannel: stopChannel,
+		errChanel:   errChannel,
 		ctx:         ctx,
 		logger:      logger,
 	}
@@ -42,8 +44,12 @@ func (s *SensorService) Start() {
 					zap.String("sensorId", s.sensor.Id.String()),
 					zap.Error(err),
 				)
+				s.errChanel <- err
 			}
 		case <-ticker.C:
+			if s.sensor.Status == Inactive {
+				continue
+			}
 			err := s.generateData()
 			if err != nil {
 				s.logger.Error("Errore nella generazione dei dati del sensore",
@@ -76,4 +82,12 @@ func (s *SensorService) Stop() {
 	case s.stopChannel <- struct{}{}:
 	default:
 	}
+}
+
+func (s *SensorService) Interrupt() {
+	s.sensor.Status = Inactive
+}
+
+func (s *SensorService) Resume() {
+	s.sensor.Status = Active
 }

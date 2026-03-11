@@ -1,10 +1,11 @@
 package commands
 
 import (
+	"fmt"
+
 	configmanager "Gateway/internal/configManager"
 	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
-	"fmt"
 )
 
 type DeleteSensorCmd struct {
@@ -23,7 +24,7 @@ func (c *DeleteSensorCmd) Execute() error {
 	c.sensorWorkers.Mu.RUnlock()
 
 	if !exists {
-		return fmt.Errorf("Gateway con Id %s non trovato nello stato del gateway manager", c.cmdData.GatewayId)
+		return fmt.Errorf("gateway con Id %s non trovato nello stato del gateway manager", c.cmdData.GatewayId)
 	}
 
 	c.sensorWorkers.Mu.RLock()
@@ -31,7 +32,7 @@ func (c *DeleteSensorCmd) Execute() error {
 	c.sensorWorkers.Mu.RUnlock()
 
 	if !sensorExists {
-		return fmt.Errorf("Sensor con Id %s non trovato nello stato del gateway manager", c.cmdData.SensorId)
+		return fmt.Errorf("sensor con Id %s non trovato nello stato del gateway manager", c.cmdData.SensorId)
 	}
 
 	sensorWorker.Stop()

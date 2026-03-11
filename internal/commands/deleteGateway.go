@@ -1,10 +1,11 @@
 package commands
 
 import (
+	"fmt"
+
 	configmanager "Gateway/internal/configManager"
 	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
-	"fmt"
 )
 
 type DeleteGatewayCmd struct {
@@ -23,7 +24,7 @@ func (c *DeleteGatewayCmd) Execute() error {
 	c.gatewayWorkers.Mu.RUnlock()
 
 	if !exists {
-		return fmt.Errorf("Gateway con Id %s non trovato nello stato del gateway manager", c.cmdData.GatewayId)
+		return fmt.Errorf("gateway con Id %s non trovato nello stato del gateway manager", c.cmdData.GatewayId)
 	}
 
 	worker.Stop()

@@ -48,3 +48,16 @@ func (r *NATSDataPublisherRepository) Send(d *sensorData) error {
 
 	return nil
 }
+
+func (r *NATSDataPublisherRepository) Hello(gatewayId uuid.UUID) error {
+	subject := fmt.Sprintf("gateway.hello.%s", gatewayId)
+
+	message := fmt.Sprintf("Hello from gateway %s!", gatewayId.String())
+
+	_, err := r.js.Publish(subject, []byte(message))
+	if err != nil {
+		return fmt.Errorf("errore nell'invio del messaggio di hello: %w, gatewayId: %s", err, gatewayId.String())
+	}
+
+	return nil
+}

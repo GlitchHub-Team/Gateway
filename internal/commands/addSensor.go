@@ -40,6 +40,7 @@ func (c *AddSensorCmd) Execute() error {
 		c.bufferPort,
 		make(chan domain.BaseCommand),
 		make(chan struct{}),
+		make(chan error),
 		c.ctx,
 		c.logger,
 	)

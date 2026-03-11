@@ -20,6 +20,7 @@ func (gatManager *GatewayManagerService) LoadGatewayWorkers() error {
 			gatManager.bufferedDataPort,
 			make(chan domain.BaseCommand),
 			make(chan struct{}),
+			make(chan error),
 			gatManager.ctx,
 			gatManager.logger,
 		)
@@ -40,6 +41,7 @@ func (gatManager *GatewayManagerService) LoadGatewayWorkers() error {
 				gatManager.saveSensorDataPort,
 				make(chan domain.BaseCommand),
 				make(chan struct{}),
+				make(chan error),
 				gatManager.ctx,
 				gatManager.logger,
 			)

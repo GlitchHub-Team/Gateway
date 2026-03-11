@@ -78,3 +78,12 @@ func (b *BufferedDataRepository) CleanBufferedData(data []*sensorData) error {
 
 	return nil
 }
+
+func (b *BufferedDataRepository) CleanWholeBuffer(gatewayId uuid.UUID) error {
+	query := `DELETE FROM buffered WHERE gatewayId = ?`
+	_, err := b.dbConnection.ExecContext(b.ctx, query, gatewayId)
+	if err != nil {
+		return fmt.Errorf("errore nell'eseguire la query per pulire il buffer del gateway %s: %w", gatewayId.String(), err)
+	}
+	return nil
+}

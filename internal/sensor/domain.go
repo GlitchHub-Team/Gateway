@@ -11,6 +11,8 @@ import (
 type SimulatedSensor interface {
 	Start()
 	Stop()
+	Interrupt()
+	Resume()
 }
 
 type SaveSensorDataPort interface {
