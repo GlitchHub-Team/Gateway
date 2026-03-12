@@ -10,10 +10,11 @@ type AddSensorCmd struct {
 	cmdData       *commanddata.AddSensor
 	sensorAdder   configmanager.SensorAdderPort
 	sensorStarter sensor.SensorStarter
+	status        sensor.SensorStatus
 }
 
 func (c *AddSensorCmd) Execute() error {
-	if err := c.sensorAdder.AddSensor(c.cmdData); err != nil {
+	if err := c.sensorAdder.AddSensor(c.cmdData, c.status); err != nil {
 		return err
 	}
 
@@ -22,11 +23,12 @@ func (c *AddSensorCmd) Execute() error {
 	return nil
 }
 
-func NewAddSensorCmd(cmdData *commanddata.AddSensor, sensorAdder configmanager.SensorAdderPort, sensorStarter sensor.SensorStarter) *AddSensorCmd {
+func NewAddSensorCmd(cmdData *commanddata.AddSensor, sensorAdder configmanager.SensorAdderPort, sensorStarter sensor.SensorStarter, status sensor.SensorStatus) *AddSensorCmd {
 	return &AddSensorCmd{
 		cmdData:       cmdData,
 		sensorAdder:   sensorAdder,
 		sensorStarter: sensorStarter,
+		status:        status,
 	}
 }
 

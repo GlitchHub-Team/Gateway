@@ -51,6 +51,7 @@ func (s *GatewayManagerService) AddSensor(cmdData *commanddata.AddSensor) Respon
 		cmdData,
 		s.configPort,
 		simulatedSensor,
+		sensor.Active,
 	)
 
 	if err := cmd.Execute(); err != nil {

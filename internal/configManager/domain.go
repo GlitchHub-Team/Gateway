@@ -4,26 +4,18 @@ import (
 	"time"
 
 	credentialsgenerator "Gateway/internal/credentialsGenerator"
+	"Gateway/internal/domain"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 	sensor "Gateway/internal/sensor"
 
 	"github.com/google/uuid"
 )
 
-type GatewayStatus string
-
-const (
-	Active         GatewayStatus = "active"
-	Inactive       GatewayStatus = "inactive"
-	Decommissioned GatewayStatus = "decommissioned"
-	Stopped        GatewayStatus = "stopped"
-)
-
 type Gateway struct {
 	Id               uuid.UUID
 	TenantId         *uuid.UUID
 	Sensors          map[uuid.UUID]*sensor.Sensor
-	Status           GatewayStatus
+	Status           domain.GatewayStatus
 	Interval         time.Duration
 	PublicIdentifier string  // Public Key
 	SecretKey        string  // Private Key
@@ -50,15 +42,15 @@ type GatewaysFetcherPort interface {
 }
 
 type GatewayCommissionerPort interface {
-	CommissionGateway(cmdData *commanddata.CommissionGateway) error
+	CommissionGateway(cmdData *commanddata.CommissionGateway, status domain.GatewayStatus) error
 }
 
 type GatewayCreatorPort interface {
-	CreateGateway(cmdData *commanddata.CreateGateway, credentials *credentialsgenerator.Credentials) error
+	CreateGateway(cmdData *commanddata.CreateGateway, credentials *credentialsgenerator.Credentials, status domain.GatewayStatus) error
 }
 
 type GatewayDecommissionerPort interface {
-	DecommissionGateway(cmdData *commanddata.DecommissionGateway) error
+	DecommissionGateway(cmdData *commanddata.DecommissionGateway, status domain.GatewayStatus) error
 }
 
 type GatewayDeleterPort interface {
@@ -66,7 +58,7 @@ type GatewayDeleterPort interface {
 }
 
 type GatewayInterrupterPort interface {
-	InterruptGateway(cmdData *commanddata.InterruptGateway) error
+	InterruptGateway(cmdData *commanddata.InterruptGateway, status domain.GatewayStatus) error
 }
 
 type GatewayResetterPort interface {
@@ -74,19 +66,19 @@ type GatewayResetterPort interface {
 }
 
 type GatewayResumerPort interface {
-	ResumeGateway(cmdData *commanddata.ResumeGateway) error
+	ResumeGateway(cmdData *commanddata.ResumeGateway, status domain.GatewayStatus) error
 }
 
 type SensorInterrupterPort interface {
-	InterruptSensor(cmdData *commanddata.InterruptSensor) error
+	InterruptSensor(cmdData *commanddata.InterruptSensor, status sensor.SensorStatus) error
 }
 
 type SensorResumerPort interface {
-	ResumeSensor(cmdData *commanddata.ResumeSensor) error
+	ResumeSensor(cmdData *commanddata.ResumeSensor, status sensor.SensorStatus) error
 }
 
 type SensorAdderPort interface {
-	AddSensor(cmdData *commanddata.AddSensor) error
+	AddSensor(cmdData *commanddata.AddSensor, status sensor.SensorStatus) error
 }
 
 type SensorDeleterPort interface {

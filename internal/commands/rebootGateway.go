@@ -16,6 +16,7 @@ type RebootGatewayCmd struct {
 	logger         *zap.Logger
 }
 
+// TODO: review, vorrrei che il reboot eliminasse e riavviasse da 0 il gateway
 func (c *RebootGatewayCmd) Execute() error {
 	c.logger.Info("Riavvio in corso...", zap.String("gatewayId", c.cmdData.GatewayId.String()))
 

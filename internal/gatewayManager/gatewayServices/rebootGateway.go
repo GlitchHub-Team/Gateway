@@ -2,13 +2,10 @@ package gatewayservices
 
 import (
 	"fmt"
-	"time"
 
 	"Gateway/internal/commands"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
-
-const defaultRebootDuration = 2 * time.Second
 
 func (s *GatewayManagerService) RebootGateway(cmdData *commanddata.RebootGateway) Response {
 	s.gateways.Mu.RLock()
@@ -19,12 +16,18 @@ func (s *GatewayManagerService) RebootGateway(cmdData *commanddata.RebootGateway
 		return Response{Success: false, Message: fmt.Sprintf("nessun gateway trovato per il riavvio, id %s", cmdData.GatewayId)}
 	}
 
-	cmd := commands.NewRebootGatewayCmd(*cmdData, defaultRebootDuration, s.ctx, s.logger)
+	cmd := commands.NewStopGatewayCmd(worker.Sender)
 	worker.CmdChannel <- cmd
 
 	if err := <-worker.ErrChannel; err != nil {
 		return Response{Success: false, Message: err.Error()}
 	}
+
+	if err := worker.Sender.Hello(); err != nil {
+		return Response{Success: false, Message: err.Error()}
+	}
+
+	go worker.Sender.Start()
 
 	return Response{Success: true, Message: "Gateway riavviato con successo"}
 }

@@ -21,23 +21,23 @@ func (gatManager *GatewayManagerService) LoadGatewayWorkers() error {
 
 		var sendSensorDataPort buffereddatasender.SendSensorDataPort
 		if gateway.Token == nil {
-			sendSensorDataPort, err = gatManager.sendSensorDataPortFactory.Create()
+			sendSensorDataPort = gatManager.sendSensorDataPortFactory.Create()
 		} else {
 			sendSensorDataPort, err = gatManager.sendSensorDataPortFactory.Reload(*gateway.Token, gateway.SecretKey)
-		}
-
-		if err != nil {
-			gatManager.logger.Error("Errore nella creazione del SendSensorDataPort",
-				zap.String("gatewayId", id.String()),
-				zap.Error(err),
-			)
-			return err
+			if err != nil {
+				gatManager.logger.Error("Errore nella creazione del SendSensorDataPort",
+					zap.String("gatewayId", id.String()),
+					zap.Error(err),
+				)
+				return err
+			}
 		}
 
 		dataSender := buffereddatasender.NewBufferedDataSenderService(
 			gateway,
 			sendSensorDataPort,
 			gatManager.bufferedDataPort,
+			gatManager.sendSensorDataPortFactory,
 			cmdGatChannel,
 			errGatChannel,
 			gatManager.ctx,

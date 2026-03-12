@@ -57,9 +57,8 @@ type sensorData struct {
 }
 
 type SendSensorDataPort interface {
-	Send(data *sensorData) error
+	Send(data *sensorData, tenantId uuid.UUID) error
 	Hello(gatewayId uuid.UUID, publicIdentifier string) error
-	Reconnect(token string, seed string) error
 }
 
 type BufferedDataPort interface {
@@ -69,20 +68,6 @@ type BufferedDataPort interface {
 }
 
 type SendSensorDataPortFactory interface {
-	Create() (SendSensorDataPort, error)
+	Create() SendSensorDataPort
 	Reload(token string, seed string) (SendSensorDataPort, error)
-}
-
-type (
-	NatsAddress string
-	NatsPort    int
-	BaseToken   string
-	BaseSeed    string
-)
-
-type NATSDataPublisherFactory struct {
-	address NatsAddress
-	port    NatsPort
-	token   BaseToken
-	seed    BaseSeed
 }

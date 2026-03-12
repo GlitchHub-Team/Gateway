@@ -12,33 +12,35 @@ import (
 )
 
 type BufferedDataSenderService struct {
-	gateway          *configmanager.Gateway
-	sendDataRepo     SendSensorDataPort
-	bufferedDataPort BufferedDataPort
-	cmdChannel       chan domain.BaseCommand
-	errChanel        chan error
-	ctx              context.Context
-	logger           *zap.Logger
-	ticker           *time.Ticker
+	gateway                   *configmanager.Gateway
+	sendDataRepo              SendSensorDataPort
+	sendSensorDataPortFactory SendSensorDataPortFactory
+	bufferedDataPort          BufferedDataPort
+	cmdChannel                chan domain.BaseCommand
+	errChanel                 chan error
+	ctx                       context.Context
+	logger                    *zap.Logger
+	ticker                    *time.Ticker
 }
 
-func NewBufferedDataSenderService(gateway *configmanager.Gateway, sendDataRepo SendSensorDataPort, bufferedDataPort BufferedDataPort, cmdChannel chan domain.BaseCommand, errChannel chan error, ctx context.Context, logger *zap.Logger) *BufferedDataSenderService {
+func NewBufferedDataSenderService(gateway *configmanager.Gateway, sendDataRepo SendSensorDataPort, bufferedDataPort BufferedDataPort, sendSensorDataPortFactory SendSensorDataPortFactory, cmdChannel chan domain.BaseCommand, errChannel chan error, ctx context.Context, logger *zap.Logger) *BufferedDataSenderService {
 	return &BufferedDataSenderService{
-		gateway:          gateway,
-		sendDataRepo:     sendDataRepo,
-		bufferedDataPort: bufferedDataPort,
-		cmdChannel:       cmdChannel,
-		errChanel:        errChannel,
-		ctx:              ctx,
-		logger:           logger,
-		ticker:           time.NewTicker(gateway.Interval),
+		gateway:                   gateway,
+		sendDataRepo:              sendDataRepo,
+		sendSensorDataPortFactory: sendSensorDataPortFactory,
+		bufferedDataPort:          bufferedDataPort,
+		cmdChannel:                cmdChannel,
+		errChanel:                 errChannel,
+		ctx:                       ctx,
+		logger:                    logger,
+		ticker:                    time.NewTicker(gateway.Interval),
 	}
 }
 
 func (b *BufferedDataSenderService) Start() {
 	defer b.ticker.Stop()
 
-	for b.gateway.Status != configmanager.Stopped {
+	for b.gateway.Status != domain.Stopped {
 		select {
 		case cmd := <-b.cmdChannel:
 			err := cmd.Execute()
@@ -51,7 +53,7 @@ func (b *BufferedDataSenderService) Start() {
 			}
 			b.errChanel <- err
 		case <-b.ticker.C:
-			if b.gateway.Status == configmanager.Active {
+			if b.gateway.Status == domain.Active {
 				err := b.sendBufferedData()
 				if err != nil {
 					b.logger.Error("Errore nell'invio dei dati bufferizzati",
@@ -78,9 +80,10 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 	}
 
 	for _, d := range data {
-		if err := b.sendDataRepo.Send(d); err != nil {
+		if err := b.sendDataRepo.Send(d, *b.gateway.TenantId); err != nil {
 			b.logger.Error("Errore nell'invio dei dati del gateway",
 				zap.String("gatewayId", b.gateway.Id.String()),
+				zap.String("tenantId", b.gateway.TenantId.String()),
 				zap.Error(err),
 			)
 			continue
@@ -110,18 +113,25 @@ func (b *BufferedDataSenderService) Decommission() error {
 	if err := b.bufferedDataPort.CleanWholeBuffer(b.gateway.Id); err != nil {
 		return err
 	}
-	b.gateway.Status = configmanager.Decommissioned
+
+	b.sendDataRepo = b.sendSensorDataPortFactory.Create()
+	b.gateway.Status = domain.Decommissioned
 	b.gateway.TenantId = nil
 	b.gateway.Token = nil
-	// TODO reconnect delle credenziali con BaseToken
 	return nil
 }
 
 func (b *BufferedDataSenderService) Commission(tenantId uuid.UUID, commissionedToken string) error {
-	b.gateway.Status = configmanager.Active
+	sendDataPort, err := b.sendSensorDataPortFactory.Reload(commissionedToken, b.gateway.SecretKey)
+	if err != nil {
+		return err
+	}
+
+	b.sendDataRepo = sendDataPort
+	b.gateway.Status = domain.Active
 	b.gateway.TenantId = &tenantId
 	b.gateway.Token = &commissionedToken
-	// TODO reconnect delle credenziali con CommissionedToken
+
 	return nil
 }
 
@@ -136,13 +146,13 @@ func (b *BufferedDataSenderService) Reset(defaultInterval time.Duration) error {
 
 // Alert: in caso si vogliano chiamare dall'esterno della goroutine bisogna istanziare un mutex
 func (b *BufferedDataSenderService) Stop() {
-	b.gateway.Status = configmanager.Stopped
+	b.gateway.Status = domain.Stopped
 }
 
 func (b *BufferedDataSenderService) Interrupt() {
-	b.gateway.Status = configmanager.Inactive
+	b.gateway.Status = domain.Inactive
 }
 
 func (b *BufferedDataSenderService) Resume() {
-	b.gateway.Status = configmanager.Active
+	b.gateway.Status = domain.Active
 }

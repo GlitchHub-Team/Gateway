@@ -5,6 +5,7 @@ import (
 
 	"Gateway/internal/commands"
 	commanddata "Gateway/internal/gatewayManager/commandData"
+	"Gateway/internal/sensor"
 )
 
 func (s *GatewayManagerService) InterruptSensor(cmdData *commanddata.InterruptSensor) Response {
@@ -23,7 +24,7 @@ func (s *GatewayManagerService) InterruptSensor(cmdData *commanddata.InterruptSe
 		return Response{Success: false, Message: fmt.Sprintf("nessun sensore trovato per l'interruzione, id sensore %s", cmdData.SensorId)}
 	}
 
-	cmd := commands.NewInterruptSensorCmd(cmdData, sensorWorker.SimulatedSensor, s.configPort)
+	cmd := commands.NewInterruptSensorCmd(cmdData, sensorWorker.SimulatedSensor, s.configPort, sensor.Inactive)
 	sensorWorker.CmdChannel <- cmd
 
 	if err := <-sensorWorker.ErrChannel; err != nil {

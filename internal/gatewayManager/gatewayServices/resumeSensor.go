@@ -5,6 +5,7 @@ import (
 
 	"Gateway/internal/commands"
 	commanddata "Gateway/internal/gatewayManager/commandData"
+	"Gateway/internal/sensor"
 )
 
 func (s *GatewayManagerService) ResumeSensor(cmdData *commanddata.ResumeSensor) Response {
@@ -23,7 +24,7 @@ func (s *GatewayManagerService) ResumeSensor(cmdData *commanddata.ResumeSensor) 
 		return Response{Success: false, Message: fmt.Sprintf("nessun sensore trovato per la ripresa, id sensore %s", cmdData.SensorId)}
 	}
 
-	cmd := commands.NewResumeSensorCmd(cmdData, sensorWorker.SimulatedSensor, s.configPort)
+	cmd := commands.NewResumeSensorCmd(cmdData, sensorWorker.SimulatedSensor, s.configPort, sensor.Active)
 	sensorWorker.CmdChannel <- cmd
 
 	if err := <-sensorWorker.ErrChannel; err != nil {

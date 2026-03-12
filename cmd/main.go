@@ -37,9 +37,10 @@ func main() {
 		fx.Supply(commandcontrollers.ResumeSensorSubject("commands.resumesensor")),
 		fx.Supply(buffereddatasender.NatsAddress("localhost")),
 		fx.Supply(buffereddatasender.NatsPort(4222)),
-		fx.Supply(buffereddatasender.BaseToken("")),
-		fx.Supply(buffereddatasender.BaseSeed("")),
+		fx.Supply(buffereddatasender.NatsToken("")),
+		fx.Supply(buffereddatasender.NatsSeed("")),
 		fx.Provide(natsserver.NewNATSConnection),
+		fx.Provide(natsserver.NewJetStreamContext),
 		fx.Provide(gatewaydatabase.NewGatewayDatabase),
 		fx.Provide(bufferdatabase.NewBufferDatabase),
 		fx.Provide(sensorprofiles.NewRand),
@@ -47,7 +48,6 @@ func main() {
 			return context.WithCancel(context.Background())
 		}),
 
-		modules.CredGenerator,
 		modules.BufferedDataSenderModule,
 		modules.SensorModule,
 		modules.ConfigManagerModule,

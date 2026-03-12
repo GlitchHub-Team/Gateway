@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"Gateway/internal/commands"
+	"Gateway/internal/domain"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
@@ -16,7 +17,7 @@ func (s *GatewayManagerService) InterruptGateway(cmdData *commanddata.InterruptG
 		return Response{Success: false, Message: fmt.Sprintf("nessun gateway trovato per l'interruzione, id %s", cmdData.GatewayId)}
 	}
 
-	cmd := commands.NewInterruptGatewayCmd(cmdData, worker.Sender, s.configPort)
+	cmd := commands.NewInterruptGatewayCmd(cmdData, worker.Sender, s.configPort, domain.Inactive)
 	worker.CmdChannel <- cmd
 
 	if err := <-worker.ErrChannel; err != nil {

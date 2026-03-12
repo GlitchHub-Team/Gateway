@@ -5,6 +5,7 @@ import (
 	"time"
 
 	configmanager "Gateway/internal/configManager"
+	"Gateway/internal/domain"
 	"Gateway/internal/sensor"
 	profiles "Gateway/internal/sensor/sensorProfiles"
 
@@ -41,7 +42,7 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 		gateways[gatewayId] = &configmanager.Gateway{
 			Id:               gatewayId,
 			TenantId:         tenantId,
-			Status:           configmanager.GatewayStatus(statusStr),
+			Status:           domain.GatewayStatus(statusStr),
 			Sensors:          sensors,
 			Interval:         time.Duration(interval) * time.Millisecond,
 			PublicIdentifier: publicIdentifier,

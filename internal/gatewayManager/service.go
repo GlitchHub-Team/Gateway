@@ -15,9 +15,9 @@ type GatewayId = uuid.UUID
 type SensorId = uuid.UUID
 
 type GatewayWorker struct {
-	Sender      buffereddatasender.DataSender
-	ErrChannel  chan error
-	CmdChannel  chan domain.BaseCommand
+	Sender     buffereddatasender.DataSender
+	ErrChannel chan error
+	CmdChannel chan domain.BaseCommand
 }
 
 type GatewayWorkers struct {

@@ -22,6 +22,7 @@ func NewNATSDataPublisherRepository(js nats.JetStreamContext) *NATSDataPublisher
 type SensorDataDTO struct {
 	SensorId  uuid.UUID       `json:"sensorId"`
 	GatewayId uuid.UUID       `json:"gatewayId"`
+	TenantId  uuid.UUID       `json:"tenantId"`
 	Timestamp time.Time       `json:"timestamp"`
 	Data      json.RawMessage `json:"data"`
 }
@@ -31,12 +32,13 @@ type HelloMessageDTO struct {
 	PublicIdentifier string    `json:"publicIdentifier"`
 }
 
-func (r *NATSDataPublisherRepository) Send(d *sensorData) error {
-	subject := fmt.Sprintf("sensor.data.%s.%s", d.GatewayId, d.SensorId)
+func (r *NATSDataPublisherRepository) Send(d *sensorData, tenantId uuid.UUID) error {
+	subject := fmt.Sprintf("sensor.%s.%s", d.GatewayId, d.SensorId)
 
 	dto := SensorDataDTO{
 		SensorId:  d.SensorId,
 		GatewayId: d.GatewayId,
+		TenantId:  tenantId,
 		Timestamp: d.Timestamp,
 		Data:      json.RawMessage(d.Data),
 	}
@@ -72,9 +74,5 @@ func (r *NATSDataPublisherRepository) Hello(gatewayId uuid.UUID, publicIdentifie
 		return fmt.Errorf("errore nell'invio del messaggio di hello: %w, gatewayId: %s", err, gatewayId.String())
 	}
 
-	return nil
-}
-
-func (r *NATSDataPublisherRepository) Reconnect(token string, seed string) error {
 	return nil
 }

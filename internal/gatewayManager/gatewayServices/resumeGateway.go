@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"Gateway/internal/commands"
+	"Gateway/internal/domain"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
@@ -16,7 +17,7 @@ func (s *GatewayManagerService) ResumeGateway(cmdData *commanddata.ResumeGateway
 		return Response{Success: false, Message: fmt.Sprintf("nessun gateway trovato per la ripresa, id %s", cmdData.GatewayId)}
 	}
 
-	cmd := commands.NewResumeGatewayCmd(cmdData, worker.Sender, s.configPort)
+	cmd := commands.NewResumeGatewayCmd(cmdData, worker.Sender, s.configPort, domain.Active)
 	worker.CmdChannel <- cmd
 
 	if err := <-worker.ErrChannel; err != nil {

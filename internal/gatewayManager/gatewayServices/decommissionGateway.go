@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"Gateway/internal/commands"
+	"Gateway/internal/domain"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
@@ -16,7 +17,7 @@ func (s *GatewayManagerService) DecommissionGateway(cmdData *commanddata.Decommi
 		return Response{Success: false, Message: fmt.Sprintf("nessun gateway trovato per il decommissioning, id %s", cmdData.GatewayId)}
 	}
 
-	cmd := commands.NewDecommissionGatewayCmd(cmdData, s.configPort, worker.Sender, worker.Sender)
+	cmd := commands.NewDecommissionGatewayCmd(cmdData, s.configPort, worker.Sender, worker.Sender, domain.Decommissioned)
 	worker.CmdChannel <- cmd
 
 	if err := <-worker.ErrChannel; err != nil {

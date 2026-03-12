@@ -2,38 +2,42 @@ package buffereddatasender
 
 import (
 	"fmt"
-	"strconv"
+
+	"Gateway/internal/natsutil"
 
 	"github.com/nats-io/nats.go"
 )
 
-func NewNATSDataPublisherFactory(address NatsAddress, port NatsPort, baseToken BaseToken, baseSeed BaseSeed) *NATSDataPublisherFactory {
+type (
+	NatsAddress string
+	NatsPort    int
+	NatsToken   string
+	NatsSeed    string
+)
+
+type NATSDataPublisherFactory struct {
+	js      nats.JetStreamContext
+	address NatsAddress
+	port    NatsPort
+}
+
+func NewNATSDataPublisherFactory(js nats.JetStreamContext, address NatsAddress, port NatsPort) *NATSDataPublisherFactory {
 	return &NATSDataPublisherFactory{
+		js:      js,
 		address: address,
 		port:    port,
-		token:   baseToken,
-		seed:    baseSeed,
 	}
 }
 
-func (f *NATSDataPublisherFactory) Create() (SendSensorDataPort, error) {
-	//TODO token e seed
-	nc, err := nats.Connect("nats://" + string(f.address) + ":" + strconv.Itoa(int(f.port)))
-	if err != nil {
-		return nil, fmt.Errorf("errore nella connessione a NATS: %w", err)
-	}
-
-	js, err := nc.JetStream()
-	if err != nil {
-		return nil, fmt.Errorf("errore nell'ottenimento del contesto JetStream: %w", err)
-	}
-
-	return NewNATSDataPublisherRepository(js), nil
+func (f *NATSDataPublisherFactory) Create() SendSensorDataPort {
+	return NewNATSDataPublisherRepository(f.js)
 }
 
 func (f *NATSDataPublisherFactory) Reload(token string, seed string) (SendSensorDataPort, error) {
-	//TODO token e seed
-	nc, err := nats.Connect("nats://" + string(f.address) + ":" + strconv.Itoa(int(f.port)))
+	opt := natsutil.JWTAuth(token, seed)
+
+	url := fmt.Sprintf("nats://%s:%d", f.address, f.port)
+	nc, err := nats.Connect(url, opt)
 	if err != nil {
 		return nil, fmt.Errorf("errore nella connessione a NATS: %w", err)
 	}

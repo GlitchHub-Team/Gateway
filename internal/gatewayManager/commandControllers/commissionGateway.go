@@ -67,8 +67,8 @@ func (c *NATSCommissionGatewayController) parseCommissionGatewayCommand(msg *nat
 	}
 
 	return &commanddata.CommissionGateway{
-		GatewayId: gatewayId,
-		TenantId:  tenantId,
+		GatewayId:         gatewayId,
+		TenantId:          tenantId,
 		CommissionedToken: req.CommissionedToken,
 	}, nil
 }

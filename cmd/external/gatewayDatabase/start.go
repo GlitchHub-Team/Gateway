@@ -3,14 +3,13 @@ package gatewaydatabase
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	configrepositories "Gateway/internal/configManager/configRepositories"
 
 	_ "modernc.org/sqlite"
 )
 
-func createGatewayTable(db *sql.DB) error {
+func createGatewayTable(db *sql.DB, ctx context.Context) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS gateways (
 		id VARCHAR(255) PRIMARY KEY,
@@ -22,11 +21,11 @@ func createGatewayTable(db *sql.DB) error {
 		token VARCHAR(255)
 	);
 	`
-	_, err := db.ExecContext(context.Background(), query)
+	_, err := db.ExecContext(ctx, query)
 	return err
 }
 
-func createSensorTable(db *sql.DB) error {
+func createSensorTable(db *sql.DB, ctx context.Context) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS sensors (
 		id VARCHAR(255),
@@ -35,44 +34,49 @@ func createSensorTable(db *sql.DB) error {
 		status VARCHAR(255) NOT NULL,
 		interval INT NOT NULL,
 		PRIMARY KEY (id, gatewayId),
-		FOREIGN KEY (gatewayId) REFERENCES gateways(id)
+		FOREIGN KEY (gatewayId) REFERENCES gateways(id) ON DELETE CASCADE
 	);
 	`
-	_, err := db.ExecContext(context.Background(), query)
+	_, err := db.ExecContext(ctx, query)
 	return err
 }
 
-func NewGatewayDatabase() configrepositories.ConfigDbConnection {
+func NewGatewayDatabase(ctx context.Context) (*configrepositories.ConfigDbConnection, error) {
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		log.Fatalf("Error while opening DB: %v", err)
+		return nil, err
 	}
 
-	err = createGatewayTable(db)
+	_, err = db.ExecContext(ctx, "PRAGMA foreign_keys = ON;")
 	if err != nil {
-		log.Fatalf("Error while creating gateways table: %v", err)
+		return nil, err
 	}
 
-	err = createSensorTable(db)
+	err = createGatewayTable(db, ctx)
 	if err != nil {
-		log.Fatalf("Error while creating sensors table: %v", err)
+		return nil, err
 	}
 
-	return configrepositories.ConfigDbConnection{DB: db}
+	err = createSensorTable(db, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &configrepositories.ConfigDbConnection{DB: db}, nil
 }
 
 /*
-func createSensorTypeFrequencyTable(db *sql.DB) error {
+func createSensorTypeFrequencyTable(db *sql.DB, ctx context.Context) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS sensor_type_frequencies (
 		gatewayId VARCHAR(255) NOT NULL,
 		sensorType VARCHAR(255) NOT NULL,
 		frequency INT NOT NULL,
 		PRIMARY KEY (gatewayId, sensorType),
-		FOREIGN KEY (gatewayId) REFERENCES gateways(id)
+		FOREIGN KEY (gatewayId) REFERENCES gateways(id) ON DELETE CASCADE
 	);
 	`
-	_, err := db.ExecContext(context.Background(), query)
+	_, err := db.ExecContext(ctx, query)
 	return err
 }
 */

@@ -5,6 +5,7 @@ import (
 
 	"Gateway/internal/commands"
 	configmanager "Gateway/internal/configManager"
+	creds "Gateway/internal/credentialsGenerator"
 	"Gateway/internal/domain"
 
 	buffereddatasender "Gateway/internal/bufferedDataSender"
@@ -25,7 +26,7 @@ func (s *GatewayManagerService) CreateGateway(cmdData *commanddata.CreateGateway
 		return Response{Success: false, Message: fmt.Sprintf("gateway con Id %s già esistente", cmdData.GatewayId)}
 	}
 
-	credentials, err := s.credentialsGenPort.GenerateCredentials()
+	credentials, err := creds.GenerateCredentials()
 	if err != nil {
 		s.logger.Error("Errore nella generazione delle credenziali",
 			zap.String("gatewayId", cmdData.GatewayId.String()),
@@ -38,7 +39,7 @@ func (s *GatewayManagerService) CreateGateway(cmdData *commanddata.CreateGateway
 		Id:               cmdData.GatewayId,
 		TenantId:         nil,
 		Sensors:          make(map[uuid.UUID]*sensor.Sensor),
-		Status:           configmanager.Decommissioned,
+		Status:           domain.Decommissioned,
 		Interval:         cmdData.Interval,
 		PublicIdentifier: credentials.PublicIdentifier,
 		SecretKey:        credentials.SecretKey,
@@ -48,26 +49,20 @@ func (s *GatewayManagerService) CreateGateway(cmdData *commanddata.CreateGateway
 	errChannel := make(chan error)
 	cmdChannel := make(chan domain.BaseCommand)
 
-	sendSensorDataPort, err := s.sendSensorDataPortFactory.Create()
-	if err != nil {
-		s.logger.Error("Errore nella creazione del SendSensorDataPort",
-			zap.String("gatewayId", cmdData.GatewayId.String()),
-			zap.Error(err),
-		)
-		return Response{Success: false, Message: err.Error()}
-	}
+	sendSensorDataPort := s.sendSensorDataPortFactory.Create()
 
 	dataSender := buffereddatasender.NewBufferedDataSenderService(
 		gateway,
 		sendSensorDataPort,
 		s.bufferedDataPort,
+		s.sendSensorDataPortFactory,
 		cmdChannel,
 		errChannel,
 		s.ctx,
 		s.logger,
 	)
 
-	cmd := commands.NewCreateGatewayCmd(cmdData, s.configPort, dataSender, dataSender, credentials)
+	cmd := commands.NewCreateGatewayCmd(cmdData, s.configPort, dataSender, dataSender, credentials, domain.Decommissioned)
 	if err := cmd.Execute(); err != nil {
 		s.logger.Error("Errore nella creazione del gateway",
 			zap.String("gatewayId", cmdData.GatewayId.String()),

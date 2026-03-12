@@ -1,10 +1,11 @@
 package commands
 
 import (
+	"time"
+
 	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
-	"time"
 )
 
 type ResetGatewayCmd struct {

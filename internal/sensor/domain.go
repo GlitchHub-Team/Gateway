@@ -40,7 +40,7 @@ type SensorStatus string
 const (
 	Active   SensorStatus = "active"
 	Inactive SensorStatus = "inactive"
-	Stopped SensorStatus = "stopped"
+	Stopped  SensorStatus = "stopped"
 )
 
 type Sensor struct {

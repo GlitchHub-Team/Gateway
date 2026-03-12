@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"Gateway/internal/commands"
+	domain "Gateway/internal/domain"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
@@ -16,7 +17,7 @@ func (s *GatewayManagerService) CommissionGateway(cmdData *commanddata.Commissio
 		return Response{Success: false, Message: fmt.Sprintf("nessun gateway trovato per il commissioning, id %s", cmdData.GatewayId)}
 	}
 
-	cmd := commands.NewCommissionGatewayCmd(cmdData, s.configPort, worker.Sender)
+	cmd := commands.NewCommissionGatewayCmd(cmdData, s.configPort, worker.Sender, domain.Active)
 	worker.CmdChannel <- cmd
 
 	if err := <-worker.ErrChannel; err != nil {

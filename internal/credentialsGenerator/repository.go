@@ -4,11 +4,12 @@ import (
 	"github.com/nats-io/nkeys"
 )
 
-type BaseJWT string
+type Credentials struct {
+	PublicIdentifier string
+	SecretKey        string
+}
 
-type NKeyCredentialsGenerator struct{}
-
-func (g *NKeyCredentialsGenerator) GenerateCredentials() (*Credentials, error) {
+func GenerateCredentials() (*Credentials, error) {
 	kp, err := nkeys.CreateUser()
 	if err != nil {
 		return nil, err
@@ -28,8 +29,4 @@ func (g *NKeyCredentialsGenerator) GenerateCredentials() (*Credentials, error) {
 		PublicIdentifier: publicKey,
 		SecretKey:        string(seed),
 	}, nil
-}
-
-func NewNKeyCredentialsGenerator() *NKeyCredentialsGenerator {
-	return &NKeyCredentialsGenerator{}
 }
