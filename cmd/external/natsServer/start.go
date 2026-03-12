@@ -5,16 +5,13 @@ import (
 	"strconv"
 	"time"
 
+	buffereddatasender "Gateway/internal/bufferedDataSender"
+
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 )
 
-type (
-	NatsAddress string
-	NatsPort    int
-)
-
-func NewNATSConnection(address NatsAddress, port NatsPort) *nats.Conn {
+func NewNATSConnection(address buffereddatasender.NatsAddress, port buffereddatasender.NatsPort) *nats.Conn {
 	opts := &server.Options{
 		Host: string(address),
 		Port: int(port),

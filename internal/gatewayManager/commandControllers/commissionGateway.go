@@ -21,8 +21,9 @@ type NATSCommissionGatewayController struct {
 }
 
 type NATSCommissionGatewayDTO struct {
-	GatewayId string `json:"gatewayId"`
-	TenantId  string `json:"tenantId"`
+	GatewayId         string `json:"gatewayId"`
+	TenantId          string `json:"tenantId"`
+	CommissionedToken string `json:"commissionedToken"`
 }
 
 func (c *NATSCommissionGatewayController) Listen() {
@@ -68,6 +69,7 @@ func (c *NATSCommissionGatewayController) parseCommissionGatewayCommand(msg *nat
 	return &commanddata.CommissionGateway{
 		GatewayId: gatewayId,
 		TenantId:  tenantId,
+		CommissionedToken: req.CommissionedToken,
 	}, nil
 }
 

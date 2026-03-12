@@ -12,6 +12,7 @@ import (
 	natsserver "Gateway/cmd/external/natsServer"
 	"Gateway/cmd/logger"
 	modules "Gateway/cmd/modules"
+	buffereddatasender "Gateway/internal/bufferedDataSender"
 	commandcontrollers "Gateway/internal/gatewayManager/commandControllers"
 	gatewayservices "Gateway/internal/gatewayManager/gatewayServices"
 	sensorprofiles "Gateway/internal/sensor/sensorProfiles"
@@ -34,10 +35,11 @@ func main() {
 		fx.Supply(commandcontrollers.ResetGatewaySubject("commands.resetgateway")),
 		fx.Supply(commandcontrollers.ResumeGatewaySubject("commands.resumegateway")),
 		fx.Supply(commandcontrollers.ResumeSensorSubject("commands.resumesensor")),
-		fx.Supply(natsserver.NatsAddress("localhost")),
-		fx.Supply(natsserver.NatsPort(4222)),
+		fx.Supply(buffereddatasender.NatsAddress("localhost")),
+		fx.Supply(buffereddatasender.NatsPort(4222)),
+		fx.Supply(buffereddatasender.BaseToken("")),
+		fx.Supply(buffereddatasender.BaseSeed("")),
 		fx.Provide(natsserver.NewNATSConnection),
-		fx.Provide(natsserver.NewJetStreamContext),
 		fx.Provide(gatewaydatabase.NewGatewayDatabase),
 		fx.Provide(bufferdatabase.NewBufferDatabase),
 		fx.Provide(sensorprofiles.NewRand),
@@ -45,6 +47,7 @@ func main() {
 			return context.WithCancel(context.Background())
 		}),
 
+		modules.CredGenerator,
 		modules.BufferedDataSenderModule,
 		modules.SensorModule,
 		modules.ConfigManagerModule,

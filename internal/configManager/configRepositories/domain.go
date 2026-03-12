@@ -6,6 +6,7 @@ import (
 	"time"
 
 	configmanager "Gateway/internal/configManager"
+	credentialsgenerator "Gateway/internal/credentialsGenerator"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 	"Gateway/internal/sensor"
 
@@ -53,7 +54,7 @@ func (r *SQLiteConfigRepository) CommissionGateway(cmdData *commanddata.Commissi
 	return nil
 }
 
-func (r *SQLiteConfigRepository) CreateGateway(cmdData *commanddata.CreateGateway) error {
+func (r *SQLiteConfigRepository) CreateGateway(cmdData *commanddata.CreateGateway, credentials *credentialsgenerator.Credentials) error {
 	// TODO: Implement database insert
 	return nil
 }

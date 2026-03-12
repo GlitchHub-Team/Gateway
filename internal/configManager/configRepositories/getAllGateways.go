@@ -13,7 +13,7 @@ import (
 
 func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.Gateway, error) {
 	query := `
-		SELECT id, tenantId, status, interval
+		SELECT id, tenantId, status, interval, publicIdentifier, secretKey, token
 		FROM gateways
 	`
 	rows, err := r.dbConnection.QueryContext(r.ctx, query)
@@ -27,7 +27,9 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 		var tenantId *uuid.UUID
 		var statusStr string
 		var interval int
-		if err := rows.Scan(&gatewayId, &tenantId, &statusStr, &interval); err != nil {
+		var publicIdentifier, secretKey string
+		var token *string
+		if err := rows.Scan(&gatewayId, &tenantId, &statusStr, &interval, &publicIdentifier, &secretKey, &token); err != nil {
 			return nil, fmt.Errorf("fallito a scansionare una riga gateway: %w", err)
 		}
 
@@ -37,11 +39,14 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 		}
 
 		gateways[gatewayId] = &configmanager.Gateway{
-			Id:       gatewayId,
-			TenantId: tenantId,
-			Status:   configmanager.GatewayStatus(statusStr),
-			Sensors:  sensors,
-			Interval: time.Duration(interval) * time.Millisecond,
+			Id:               gatewayId,
+			TenantId:         tenantId,
+			Status:           configmanager.GatewayStatus(statusStr),
+			Sensors:          sensors,
+			Interval:         time.Duration(interval) * time.Millisecond,
+			PublicIdentifier: publicIdentifier,
+			SecretKey:        secretKey,
+			Token:            token,
 		}
 	}
 

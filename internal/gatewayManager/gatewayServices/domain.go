@@ -5,6 +5,7 @@ import (
 
 	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
+	credentialsgenerator "Gateway/internal/credentialsGenerator"
 	gatewaymanager "Gateway/internal/gatewayManager"
 	"Gateway/internal/sensor"
 
@@ -21,25 +22,27 @@ type GatewaysLoader interface {
 }
 
 type GatewayManagerService struct {
-	gateways           gatewaymanager.GatewayWorkers
-	sensors            gatewaymanager.SensorWorkers
-	saveSensorDataPort sensor.SaveSensorDataPort
-	bufferedDataPort   buffereddatasender.BufferedDataPort
-	sendSensorDataPort buffereddatasender.SendSensorDataPort
-	configPort         configmanager.ConfigPort
-	ctx                context.Context
-	logger             *zap.Logger
+	gateways                  gatewaymanager.GatewayWorkers
+	sensors                   gatewaymanager.SensorWorkers
+	saveSensorDataPort        sensor.SaveSensorDataPort
+	bufferedDataPort          buffereddatasender.BufferedDataPort
+	sendSensorDataPortFactory buffereddatasender.SendSensorDataPortFactory
+	credentialsGenPort        credentialsgenerator.CredentialsGeneratorPort
+	configPort                configmanager.ConfigPort
+	ctx                       context.Context
+	logger                    *zap.Logger
 }
 
-func NewGatewayManagerService(gateways gatewaymanager.GatewayWorkers, sensors gatewaymanager.SensorWorkers, saveSensorDataPort sensor.SaveSensorDataPort, bufferedDataPort buffereddatasender.BufferedDataPort, sendSensorDataPort buffereddatasender.SendSensorDataPort, configPort configmanager.ConfigPort, ctx context.Context, logger *zap.Logger) *GatewayManagerService {
+func NewGatewayManagerService(gateways gatewaymanager.GatewayWorkers, sensors gatewaymanager.SensorWorkers, saveSensorDataPort sensor.SaveSensorDataPort, bufferedDataPort buffereddatasender.BufferedDataPort, sendSensorDataPortFactory buffereddatasender.SendSensorDataPortFactory, credentialsGenPort credentialsgenerator.CredentialsGeneratorPort, configPort configmanager.ConfigPort, ctx context.Context, logger *zap.Logger) *GatewayManagerService {
 	return &GatewayManagerService{
-		gateways:           gateways,
-		sensors:            sensors,
-		saveSensorDataPort: saveSensorDataPort,
-		bufferedDataPort:   bufferedDataPort,
-		sendSensorDataPort: sendSensorDataPort,
-		configPort:         configPort,
-		ctx:                ctx,
-		logger:             logger,
+		gateways:                  gateways,
+		sensors:                   sensors,
+		saveSensorDataPort:        saveSensorDataPort,
+		bufferedDataPort:          bufferedDataPort,
+		sendSensorDataPortFactory: sendSensorDataPortFactory,
+		credentialsGenPort:        credentialsGenPort,
+		configPort:                configPort,
+		ctx:                       ctx,
+		logger:                    logger,
 	}
 }

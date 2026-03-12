@@ -16,7 +16,10 @@ func createGatewayTable(db *sql.DB) error {
 		id VARCHAR(255) PRIMARY KEY,
 		tenantId VARCHAR(255),
 		status VARCHAR(255) NOT NULL,
-		interval INT NOT NULL
+		interval INT NOT NULL,
+		publicIdentifier VARCHAR(255) NOT NULL,
+		secretKey VARCHAR(255) NOT NULL,
+		token VARCHAR(255)
 	);
 	`
 	_, err := db.ExecContext(context.Background(), query)

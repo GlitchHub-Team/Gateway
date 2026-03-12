@@ -25,20 +25,41 @@ func (s *GatewayManagerService) CreateGateway(cmdData *commanddata.CreateGateway
 		return Response{Success: false, Message: fmt.Sprintf("gateway con Id %s già esistente", cmdData.GatewayId)}
 	}
 
+	credentials, err := s.credentialsGenPort.GenerateCredentials()
+	if err != nil {
+		s.logger.Error("Errore nella generazione delle credenziali",
+			zap.String("gatewayId", cmdData.GatewayId.String()),
+			zap.Error(err),
+		)
+		return Response{Success: false, Message: err.Error()}
+	}
+
 	gateway := &configmanager.Gateway{
-		Id:       cmdData.GatewayId,
-		TenantId: nil,
-		Sensors:  make(map[uuid.UUID]*sensor.Sensor),
-		Status:   configmanager.Decommissioned,
-		Interval: cmdData.Interval,
+		Id:               cmdData.GatewayId,
+		TenantId:         nil,
+		Sensors:          make(map[uuid.UUID]*sensor.Sensor),
+		Status:           configmanager.Decommissioned,
+		Interval:         cmdData.Interval,
+		PublicIdentifier: credentials.PublicIdentifier,
+		SecretKey:        credentials.SecretKey,
+		Token:            nil,
 	}
 
 	errChannel := make(chan error)
 	cmdChannel := make(chan domain.BaseCommand)
 
+	sendSensorDataPort, err := s.sendSensorDataPortFactory.Create()
+	if err != nil {
+		s.logger.Error("Errore nella creazione del SendSensorDataPort",
+			zap.String("gatewayId", cmdData.GatewayId.String()),
+			zap.Error(err),
+		)
+		return Response{Success: false, Message: err.Error()}
+	}
+
 	dataSender := buffereddatasender.NewBufferedDataSenderService(
 		gateway,
-		s.sendSensorDataPort,
+		sendSensorDataPort,
 		s.bufferedDataPort,
 		cmdChannel,
 		errChannel,
@@ -46,7 +67,7 @@ func (s *GatewayManagerService) CreateGateway(cmdData *commanddata.CreateGateway
 		s.logger,
 	)
 
-	cmd := commands.NewCreateGatewayCmd(cmdData, s.configPort, dataSender)
+	cmd := commands.NewCreateGatewayCmd(cmdData, s.configPort, dataSender, dataSender, credentials)
 	if err := cmd.Execute(); err != nil {
 		s.logger.Error("Errore nella creazione del gateway",
 			zap.String("gatewayId", cmdData.GatewayId.String()),

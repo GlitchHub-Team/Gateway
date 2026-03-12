@@ -7,6 +7,7 @@ import (
 	configmanager "Gateway/internal/configManager"
 	"Gateway/internal/domain"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -50,15 +51,14 @@ func (b *BufferedDataSenderService) Start() {
 			}
 			b.errChanel <- err
 		case <-b.ticker.C:
-			if b.gateway.Status == configmanager.Inactive {
-				continue
-			}
-			err := b.sendBufferedData()
-			if err != nil {
-				b.logger.Error("Errore nell'invio dei dati bufferizzati",
-					zap.String("gatewayId", b.gateway.Id.String()),
-					zap.Error(err),
-				)
+			if b.gateway.Status == configmanager.Active {
+				err := b.sendBufferedData()
+				if err != nil {
+					b.logger.Error("Errore nell'invio dei dati bufferizzati",
+						zap.String("gatewayId", b.gateway.Id.String()),
+						zap.Error(err),
+					)
+				}
 			}
 		case <-b.ctx.Done():
 			b.logger.Warn("Gateway interrotto",
@@ -99,10 +99,29 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 }
 
 func (b *BufferedDataSenderService) Hello() error {
-	if err := b.sendDataRepo.Hello(b.gateway.Id); err != nil {
+	if err := b.sendDataRepo.Hello(b.gateway.Id, b.gateway.PublicIdentifier); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (b *BufferedDataSenderService) Decommission() error {
+	if err := b.bufferedDataPort.CleanWholeBuffer(b.gateway.Id); err != nil {
+		return err
+	}
+	b.gateway.Status = configmanager.Decommissioned
+	b.gateway.TenantId = nil
+	b.gateway.Token = nil
+	// TODO reconnect delle credenziali con BaseToken
+	return nil
+}
+
+func (b *BufferedDataSenderService) Commission(tenantId uuid.UUID, commissionedToken string) error {
+	b.gateway.Status = configmanager.Active
+	b.gateway.TenantId = &tenantId
+	b.gateway.Token = &commissionedToken
+	// TODO reconnect delle credenziali con CommissionedToken
 	return nil
 }
 

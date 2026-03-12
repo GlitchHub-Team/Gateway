@@ -26,6 +26,11 @@ type SensorDataDTO struct {
 	Data      json.RawMessage `json:"data"`
 }
 
+type HelloMessageDTO struct {
+	GatewayId        uuid.UUID `json:"gatewayId"`
+	PublicIdentifier string    `json:"publicIdentifier"`
+}
+
 func (r *NATSDataPublisherRepository) Send(d *sensorData) error {
 	subject := fmt.Sprintf("sensor.data.%s.%s", d.GatewayId, d.SensorId)
 
@@ -49,15 +54,27 @@ func (r *NATSDataPublisherRepository) Send(d *sensorData) error {
 	return nil
 }
 
-func (r *NATSDataPublisherRepository) Hello(gatewayId uuid.UUID) error {
+func (r *NATSDataPublisherRepository) Hello(gatewayId uuid.UUID, publicIdentifier string) error {
 	subject := fmt.Sprintf("gateway.hello.%s", gatewayId)
 
-	message := fmt.Sprintf("Hello from gateway %s!", gatewayId.String())
+	dto := HelloMessageDTO{
+		GatewayId:        gatewayId,
+		PublicIdentifier: publicIdentifier,
+	}
 
-	_, err := r.js.Publish(subject, []byte(message))
+	marshaledHelloMessage, err := json.Marshal(dto)
+	if err != nil {
+		return fmt.Errorf("errore nel marshaling del messaggio di hello: %w, gatewayId: %s", err, gatewayId.String())
+	}
+
+	_, err = r.js.Publish(subject, marshaledHelloMessage)
 	if err != nil {
 		return fmt.Errorf("errore nell'invio del messaggio di hello: %w, gatewayId: %s", err, gatewayId.String())
 	}
 
+	return nil
+}
+
+func (r *NATSDataPublisherRepository) Reconnect(token string, seed string) error {
 	return nil
 }

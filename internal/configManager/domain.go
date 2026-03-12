@@ -3,6 +3,7 @@ package configmanager
 import (
 	"time"
 
+	credentialsgenerator "Gateway/internal/credentialsGenerator"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 	sensor "Gateway/internal/sensor"
 
@@ -19,11 +20,14 @@ const (
 )
 
 type Gateway struct {
-	Id       uuid.UUID
-	TenantId *uuid.UUID
-	Sensors  map[uuid.UUID]*sensor.Sensor
-	Status   GatewayStatus
-	Interval time.Duration
+	Id               uuid.UUID
+	TenantId         *uuid.UUID
+	Sensors          map[uuid.UUID]*sensor.Sensor
+	Status           GatewayStatus
+	Interval         time.Duration
+	PublicIdentifier string  // Public Key
+	SecretKey        string  // Private Key
+	Token            *string // JWT when gateway is commissioned
 }
 
 type ConfigPort interface {
@@ -50,7 +54,7 @@ type GatewayCommissionerPort interface {
 }
 
 type GatewayCreatorPort interface {
-	CreateGateway(cmdData *commanddata.CreateGateway) error
+	CreateGateway(cmdData *commanddata.CreateGateway, credentials *credentialsgenerator.Credentials) error
 }
 
 type GatewayDecommissionerPort interface {

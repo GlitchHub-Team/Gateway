@@ -5,6 +5,8 @@ import (
 	"Gateway/internal/domain"
 	gatewaymanager "Gateway/internal/gatewayManager"
 	"Gateway/internal/sensor"
+
+	"go.uber.org/zap"
 )
 
 func (gatManager *GatewayManagerService) LoadGatewayWorkers() error {
@@ -17,9 +19,24 @@ func (gatManager *GatewayManagerService) LoadGatewayWorkers() error {
 		errGatChannel := make(chan error)
 		cmdGatChannel := make(chan domain.BaseCommand)
 
+		var sendSensorDataPort buffereddatasender.SendSensorDataPort
+		if gateway.Token == nil {
+			sendSensorDataPort, err = gatManager.sendSensorDataPortFactory.Create()
+		} else {
+			sendSensorDataPort, err = gatManager.sendSensorDataPortFactory.Reload(*gateway.Token, gateway.SecretKey)
+		}
+
+		if err != nil {
+			gatManager.logger.Error("Errore nella creazione del SendSensorDataPort",
+				zap.String("gatewayId", id.String()),
+				zap.Error(err),
+			)
+			return err
+		}
+
 		dataSender := buffereddatasender.NewBufferedDataSenderService(
 			gateway,
-			gatManager.sendSensorDataPort,
+			sendSensorDataPort,
 			gatManager.bufferedDataPort,
 			cmdGatChannel,
 			errGatChannel,

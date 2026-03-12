@@ -3,21 +3,24 @@ package commands
 import (
 	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
+	credentialsgenerator "Gateway/internal/credentialsGenerator"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type CreateGatewayCmd struct {
-	cmdData    *commanddata.CreateGateway
-	configPort configmanager.GatewayCreatorPort
-	sender     buffereddatasender.DataSenderStarter
+	cmdData     *commanddata.CreateGateway
+	configPort  configmanager.GatewayCreatorPort
+	sender      buffereddatasender.DataSenderStarter
+	greeter     buffereddatasender.DataSenderGreeter
+	credentials *credentialsgenerator.Credentials
 }
 
 func (c *CreateGatewayCmd) Execute() error {
-	if err := c.configPort.CreateGateway(c.cmdData); err != nil {
+	if err := c.configPort.CreateGateway(c.cmdData, c.credentials); err != nil {
 		return err
 	}
 
-	if err := c.sender.Hello(); err != nil {
+	if err := c.greeter.Hello(); err != nil {
 		return err
 	}
 
@@ -26,11 +29,13 @@ func (c *CreateGatewayCmd) Execute() error {
 	return nil
 }
 
-func NewCreateGatewayCmd(cmdData *commanddata.CreateGateway, configPort configmanager.GatewayCreatorPort, sender buffereddatasender.DataSenderStarter) *CreateGatewayCmd {
+func NewCreateGatewayCmd(cmdData *commanddata.CreateGateway, configPort configmanager.GatewayCreatorPort, sender buffereddatasender.DataSenderStarter, greeter buffereddatasender.DataSenderGreeter, credentials *credentialsgenerator.Credentials) *CreateGatewayCmd {
 	return &CreateGatewayCmd{
-		cmdData:    cmdData,
-		configPort: configPort,
-		sender:     sender,
+		cmdData:     cmdData,
+		configPort:  configPort,
+		sender:      sender,
+		greeter:     greeter,
+		credentials: credentials,
 	}
 }
 

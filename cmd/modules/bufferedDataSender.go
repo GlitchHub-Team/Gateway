@@ -9,12 +9,12 @@ import (
 var BufferedDataSenderModule = fx.Module("BufferedDataSenderModule",
 	fx.Provide(
 		fx.Annotate(
-			bufferedDataSender.NewNATSDataPublisherRepository,
-			fx.As(new(bufferedDataSender.SendSensorDataPort)),
-		),
-		fx.Annotate(
 			bufferedDataSender.NewBufferedDataRepository,
 			fx.As(new(bufferedDataSender.BufferedDataPort)),
+		),
+		fx.Annotate(
+			bufferedDataSender.NewNATSDataPublisherFactory,
+			fx.As(new(bufferedDataSender.SendSensorDataPortFactory)),
 		),
 	),
 )
