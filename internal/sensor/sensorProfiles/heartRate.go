@@ -23,7 +23,7 @@ type HeartRateData struct {
 }
 
 func generateHeartRate(rand Rand) *HeartRateData {
-	bpm := 60 + rand.Intn(41)
+	bpm := 60 + rand.Intn(41) // da 60 a 100 bpm, range tipico per un adulto a riposo
 	return &HeartRateData{
 		BpmValue: bpm,
 	}
