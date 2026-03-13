@@ -53,6 +53,7 @@ type sensorData struct {
 	SensorId  uuid.UUID
 	GatewayId uuid.UUID
 	Timestamp time.Time
+	Profile   string
 	Data      []byte
 }
 

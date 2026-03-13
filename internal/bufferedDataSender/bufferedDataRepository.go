@@ -25,7 +25,7 @@ func NewBufferedDataRepository(ctx context.Context, conn sensor.BufferDbConnecti
 }
 
 func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]*sensorData, error) {
-	query := `SELECT sensorId, gatewayId, timestamp, value
+	query := `SELECT sensorId, gatewayId, timestamp, profile, value
 				FROM buffer 
 				WHERE gatewayId = ? 
 				ORDER BY timestamp ASC`
@@ -38,14 +38,16 @@ func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]
 	for rows.Next() {
 		var sensorId, gatewayId uuid.UUID
 		var timestamp time.Time
+		var profile string
 		var value []byte
-		if err := rows.Scan(&sensorId, &gatewayId, &timestamp, &value); err != nil {
+		if err := rows.Scan(&sensorId, &gatewayId, &timestamp, &profile, &value); err != nil {
 			return nil, fmt.Errorf("errore nello scan della riga del buffer: %w, gatewayId: %s", err, gatewayId.String())
 		}
 		data = append(data, &sensorData{
 			SensorId:  sensorId,
 			GatewayId: gatewayId,
 			Timestamp: timestamp,
+			Profile:   profile,
 			Data:      value,
 		})
 	}

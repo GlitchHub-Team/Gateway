@@ -37,6 +37,7 @@ func (g *HealthThermometerProfile) Generate() *GeneratedSensorData {
 	return &GeneratedSensorData{
 		SensorId:  g.sensorId,
 		Timestamp: time.Now(),
+		Profile:   g.String(),
 		Data:      data,
 	}
 }

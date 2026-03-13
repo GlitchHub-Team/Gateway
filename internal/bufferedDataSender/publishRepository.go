@@ -24,6 +24,7 @@ type SensorDataDTO struct {
 	GatewayId uuid.UUID       `json:"gatewayId"`
 	TenantId  uuid.UUID       `json:"tenantId"`
 	Timestamp time.Time       `json:"timestamp"`
+	Profile   string          `json:"profile"`
 	Data      json.RawMessage `json:"data"`
 }
 
@@ -40,6 +41,7 @@ func (r *NATSDataPublisherRepository) Send(d *sensorData, tenantId uuid.UUID) er
 		GatewayId: d.GatewayId,
 		TenantId:  tenantId,
 		Timestamp: d.Timestamp,
+		Profile:   d.Profile,
 		Data:      json.RawMessage(d.Data),
 	}
 
