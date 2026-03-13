@@ -11,7 +11,7 @@ import (
 type CreateGatewayCmd struct {
 	cmdData     *commanddata.CreateGateway
 	configPort  configmanager.GatewayCreatorPort
-	sender      buffereddatasender.DataSenderStarter
+	starter     buffereddatasender.DataSenderStarter
 	greeter     buffereddatasender.DataSenderGreeter
 	credentials *credentialsgenerator.Credentials
 	status      domain.GatewayStatus
@@ -26,16 +26,16 @@ func (c *CreateGatewayCmd) Execute() error {
 		return err
 	}
 
-	go c.sender.Start()
+	go c.starter.Start()
 
 	return nil
 }
 
-func NewCreateGatewayCmd(cmdData *commanddata.CreateGateway, configPort configmanager.GatewayCreatorPort, sender buffereddatasender.DataSenderStarter, greeter buffereddatasender.DataSenderGreeter, credentials *credentialsgenerator.Credentials, status domain.GatewayStatus) *CreateGatewayCmd {
+func NewCreateGatewayCmd(cmdData *commanddata.CreateGateway, configPort configmanager.GatewayCreatorPort, starter buffereddatasender.DataSenderStarter, greeter buffereddatasender.DataSenderGreeter, credentials *credentialsgenerator.Credentials, status domain.GatewayStatus) *CreateGatewayCmd {
 	return &CreateGatewayCmd{
 		cmdData:     cmdData,
 		configPort:  configPort,
-		sender:      sender,
+		starter:     starter,
 		greeter:     greeter,
 		credentials: credentials,
 		status:      status,
