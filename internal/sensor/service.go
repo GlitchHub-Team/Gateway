@@ -10,24 +10,22 @@ import (
 )
 
 type SensorService struct {
-	sensor      *Sensor
-	bufferPort  SaveSensorDataPort
-	cmdChannel  chan domain.BaseCommand
-	stopChannel chan struct{}
-	errChanel   chan error
-	ctx         context.Context
-	logger      *zap.Logger
+	sensor     *Sensor
+	bufferPort SaveSensorDataPort
+	cmdChannel chan domain.BaseCommand
+	errChanel  chan error
+	ctx        context.Context
+	logger     *zap.Logger
 }
 
-func NewSensorService(sensor *Sensor, bufferPort SaveSensorDataPort, cmdChannel chan domain.BaseCommand, stopChannel chan struct{}, errChannel chan error, ctx context.Context, logger *zap.Logger) *SensorService {
+func NewSensorService(sensor *Sensor, bufferPort SaveSensorDataPort, cmdChannel chan domain.BaseCommand, errChannel chan error, ctx context.Context, logger *zap.Logger) *SensorService {
 	return &SensorService{
-		sensor:      sensor,
-		bufferPort:  bufferPort,
-		cmdChannel:  cmdChannel,
-		stopChannel: stopChannel,
-		errChanel:   errChannel,
-		ctx:         ctx,
-		logger:      logger,
+		sensor:     sensor,
+		bufferPort: bufferPort,
+		cmdChannel: cmdChannel,
+		errChanel:  errChannel,
+		ctx:        ctx,
+		logger:     logger,
 	}
 }
 
@@ -35,17 +33,18 @@ func (s *SensorService) Start() {
 	ticker := time.NewTicker(s.sensor.Interval)
 
 	defer ticker.Stop()
-	for {
+	for s.sensor.Status != Stopped {
 		select {
 		case cmd := <-s.cmdChannel:
-			if err := cmd.Execute(); err != nil {
+			err := cmd.Execute()
+			if err != nil {
 				s.logger.Error("Errore nell'esecuzione del comando",
 					zap.String("command", cmd.String()),
 					zap.String("sensorId", s.sensor.Id.String()),
 					zap.Error(err),
 				)
-				s.errChanel <- err
 			}
+			s.errChanel <- err
 		case <-ticker.C:
 			if s.sensor.Status == Inactive {
 				continue
@@ -57,10 +56,8 @@ func (s *SensorService) Start() {
 					zap.Error(err),
 				)
 			}
-		case <-s.stopChannel:
-			return
 		case <-s.ctx.Done():
-			s.logger.Error("Sensore interrotto",
+			s.logger.Warn("Sensore interrotto",
 				zap.String("sensorId", s.sensor.Id.String()),
 				zap.Error(s.ctx.Err()),
 			)
@@ -77,11 +74,9 @@ func (s *SensorService) generateData() error {
 	return nil
 }
 
+// Alert: in caso si vogliano chiamare dall'esterno della goroutine bisogna istanziare un mutex
 func (s *SensorService) Stop() {
-	select {
-	case s.stopChannel <- struct{}{}:
-	default:
-	}
+	s.sensor.Status = Stopped
 }
 
 func (s *SensorService) Interrupt() {

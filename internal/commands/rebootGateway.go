@@ -16,14 +16,15 @@ type RebootGatewayCmd struct {
 	logger         *zap.Logger
 }
 
+// TODO: review, vorrrei che il reboot eliminasse e riavviasse da 0 il gateway
 func (c *RebootGatewayCmd) Execute() error {
 	c.logger.Info("Riavvio in corso...", zap.String("gatewayId", c.cmdData.GatewayId.String()))
 
 	select {
 	case <-time.After(c.rebootDuration):
-		c.logger.Info("Gateway riavviato con successo")
+		c.logger.Info("Gateway riavviato con successo", zap.String("gatewayId", c.cmdData.GatewayId.String()))
 	case <-c.ctx.Done():
-		c.logger.Warn("Reboot interrotto dallo shutdown dell'applicazione")
+		c.logger.Warn("Reboot interrotto dallo shutdown dell'applicazione", zap.String("gatewayId", c.cmdData.GatewayId.String()))
 		return c.ctx.Err()
 	}
 

@@ -1,17 +1,15 @@
 package commands
 
 import (
-	"fmt"
-
+	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
-	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type DeleteGatewayCmd struct {
-	cmdData        *commanddata.DeleteGateway
-	configService  configmanager.GatewayDeleterPort
-	gatewayWorkers *gatewaymanager.GatewayWorkers
+	cmdData       *commanddata.DeleteGateway
+	configService configmanager.GatewayDeleterPort
+	senderStopper buffereddatasender.DataSenderStopper
 }
 
 func (c *DeleteGatewayCmd) Execute() error {
@@ -19,27 +17,16 @@ func (c *DeleteGatewayCmd) Execute() error {
 		return err
 	}
 
-	c.gatewayWorkers.Mu.RLock()
-	worker, exists := c.gatewayWorkers.Workers[c.cmdData.GatewayId]
-	c.gatewayWorkers.Mu.RUnlock()
-
-	if !exists {
-		return fmt.Errorf("gateway con Id %s non trovato nello stato del gateway manager", c.cmdData.GatewayId)
-	}
-
-	worker.Stop()
-	c.gatewayWorkers.Mu.Lock()
-	delete(c.gatewayWorkers.Workers, c.cmdData.GatewayId)
-	c.gatewayWorkers.Mu.Unlock()
+	c.senderStopper.Stop()
 
 	return nil
 }
 
-func NewDeleteGatewayCmd(cmdData *commanddata.DeleteGateway, configService configmanager.GatewayDeleterPort, gatewayWorkers *gatewaymanager.GatewayWorkers) *DeleteGatewayCmd {
+func NewDeleteGatewayCmd(cmdData *commanddata.DeleteGateway, configService configmanager.GatewayDeleterPort, senderStopper buffereddatasender.DataSenderStopper) *DeleteGatewayCmd {
 	return &DeleteGatewayCmd{
-		cmdData:        cmdData,
-		configService:  configService,
-		gatewayWorkers: gatewayWorkers,
+		cmdData:       cmdData,
+		configService: configService,
+		senderStopper: senderStopper,
 	}
 }
 

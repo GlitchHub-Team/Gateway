@@ -17,8 +17,9 @@ type ChangeSensorFrequency struct {
 }
 
 type CommissionGateway struct {
-	GatewayId uuid.UUID
-	TenantId  uuid.UUID
+	GatewayId         uuid.UUID
+	TenantId          uuid.UUID
+	CommissionedToken string
 }
 
 type CreateGateway struct {

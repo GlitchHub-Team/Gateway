@@ -2,6 +2,7 @@ package commandcontrollers
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	commanddata "Gateway/internal/gatewayManager/commandData"
@@ -72,12 +73,12 @@ func (c *NATSAddSensorController) parseAddSensorCommand(msg *nats.Msg) (*command
 
 	profile := sensorprofiles.ParseSensorProfile(req.Profile, c.rand)
 	if profile == nil {
-		return nil, err
+		return nil, fmt.Errorf("profilo sensore non valido: %s", req.Profile)
 	}
 
 	interval := time.Duration(req.Interval) * time.Millisecond
 	if interval <= 0 {
-		return nil, err
+		return nil, fmt.Errorf("intervallo non valido: %d", req.Interval)
 	}
 
 	return &commanddata.AddSensor{

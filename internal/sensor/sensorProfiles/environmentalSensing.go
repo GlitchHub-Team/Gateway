@@ -25,7 +25,7 @@ type EnvironmentalSensingData struct {
 }
 
 func generateEnvironmentalSensing(rand Rand) *EnvironmentalSensingData {
-	temperature := 15.0 + rand.Float64()*15.0
+	temperature := 15.0 + rand.Float64()*15.0 // Float64 è tra 0.0 e 1.0, 1.0 escluso
 	humidity := 30.0 + rand.Float64()*40.0
 	pressure := 980.0 + rand.Float64()*50.0
 
@@ -42,6 +42,7 @@ func (g *EnvironmentalSensingProfile) Generate() *GeneratedSensorData {
 	return &GeneratedSensorData{
 		SensorId:  g.sensorId,
 		Timestamp: time.Now(),
+		Profile:   g.String(),
 		Data:      data,
 	}
 }

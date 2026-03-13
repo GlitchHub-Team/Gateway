@@ -25,9 +25,9 @@ func NewBufferedDataRepository(ctx context.Context, conn sensor.BufferDbConnecti
 }
 
 func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]*sensorData, error) {
-	query := `SELECT sensor_id, gateway_id, timestamp, value
-				FROM buffered_data 
-				WHERE gateway_id = ? 
+	query := `SELECT sensorId, gatewayId, timestamp, profile, value
+				FROM buffer 
+				WHERE gatewayId = ? 
 				ORDER BY timestamp ASC`
 	rows, err := b.dbConnection.QueryContext(b.ctx, query, gatewayId)
 	if err != nil {
@@ -38,14 +38,16 @@ func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]
 	for rows.Next() {
 		var sensorId, gatewayId uuid.UUID
 		var timestamp time.Time
+		var profile string
 		var value []byte
-		if err := rows.Scan(&sensorId, &gatewayId, &timestamp, &value); err != nil {
+		if err := rows.Scan(&sensorId, &gatewayId, &timestamp, &profile, &value); err != nil {
 			return nil, fmt.Errorf("errore nello scan della riga del buffer: %w, gatewayId: %s", err, gatewayId.String())
 		}
 		data = append(data, &sensorData{
 			SensorId:  sensorId,
 			GatewayId: gatewayId,
 			Timestamp: timestamp,
+			Profile:   profile,
 			Data:      value,
 		})
 	}
@@ -63,7 +65,7 @@ func (b *BufferedDataRepository) CleanBufferedData(data []*sensorData) error {
 	}
 
 	placeholders := slices.Repeat([]string{"(?, ?, ?)"}, len(data))
-	query := `DELETE FROM buffered_data WHERE (gatewayId, sensorId, timestamp) IN (%s)`
+	query := `DELETE FROM buffer WHERE (gatewayId, sensorId, timestamp) IN (%s)`
 	generatedQuery := fmt.Sprintf(query, strings.Join(placeholders, ", "))
 
 	args := make([]any, 0, len(data)*3)
@@ -80,7 +82,7 @@ func (b *BufferedDataRepository) CleanBufferedData(data []*sensorData) error {
 }
 
 func (b *BufferedDataRepository) CleanWholeBuffer(gatewayId uuid.UUID) error {
-	query := `DELETE FROM buffered WHERE gatewayId = ?`
+	query := `DELETE FROM buffer WHERE gatewayId = ?`
 	_, err := b.dbConnection.ExecContext(b.ctx, query, gatewayId)
 	if err != nil {
 		return fmt.Errorf("errore nell'eseguire la query per pulire il buffer del gateway %s: %w", gatewayId.String(), err)

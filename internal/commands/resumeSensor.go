@@ -1,52 +1,32 @@
 package commands
 
 import (
-	"fmt"
-
 	configmanager "Gateway/internal/configManager"
-	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
+	"Gateway/internal/sensor"
 )
 
 type ResumeSensorCmd struct {
-	cmdData       *commanddata.ResumeSensor
-	configService configmanager.SensorResumerPort
-	sensorWorkers *gatewaymanager.SensorWorkers
+	cmdData         *commanddata.ResumeSensor
+	resumerPort     configmanager.SensorResumerPort
+	simulatedSensor sensor.SensorResumer
+	status          sensor.SensorStatus
 }
 
 func (c *ResumeSensorCmd) Execute() error {
-	if err := c.configService.ResumeSensor(c.cmdData); err != nil {
+	if err := c.resumerPort.ResumeSensor(c.cmdData, c.status); err != nil {
 		return err
 	}
-
-	c.sensorWorkers.Mu.RLock()
-	sensors, exists := c.sensorWorkers.Workers[c.cmdData.GatewayId]
-	c.sensorWorkers.Mu.RUnlock()
-
-	if !exists {
-		return fmt.Errorf("nessun gateway trovato per la ripresa del sensore, id gateway %s", c.cmdData.GatewayId)
-	}
-
-	c.sensorWorkers.Mu.RLock()
-	sensorWorker, sensorExists := sensors[c.cmdData.SensorId]
-	c.sensorWorkers.Mu.RUnlock()
-
-	if !sensorExists {
-		return fmt.Errorf("nessun sensore trovato per la ripresa, id sensore %s", c.cmdData.SensorId)
-	}
-
-	c.sensorWorkers.Mu.Lock()
-	sensorWorker.Resume()
-	c.sensorWorkers.Mu.Unlock()
-
+	c.simulatedSensor.Resume()
 	return nil
 }
 
-func NewResumeSensorCmd(cmdData *commanddata.ResumeSensor, configService configmanager.SensorResumerPort, sensorWorkers *gatewaymanager.SensorWorkers) *ResumeSensorCmd {
+func NewResumeSensorCmd(cmdData *commanddata.ResumeSensor, simulatedSensor sensor.SensorResumer, resumerPort configmanager.SensorResumerPort, status sensor.SensorStatus) *ResumeSensorCmd {
 	return &ResumeSensorCmd{
-		cmdData:       cmdData,
-		configService: configService,
-		sensorWorkers: sensorWorkers,
+		cmdData:         cmdData,
+		simulatedSensor: simulatedSensor,
+		resumerPort:     resumerPort,
+		status:          status,
 	}
 }
 

@@ -5,6 +5,8 @@ import (
 	"Gateway/internal/domain"
 	gatewaymanager "Gateway/internal/gatewayManager"
 	"Gateway/internal/sensor"
+
+	"go.uber.org/zap"
 )
 
 func (gatManager *GatewayManagerService) LoadGatewayWorkers() error {
@@ -14,40 +16,67 @@ func (gatManager *GatewayManagerService) LoadGatewayWorkers() error {
 	}
 
 	for id, gateway := range gateways {
+		errGatChannel := make(chan error)
+		cmdGatChannel := make(chan domain.BaseCommand)
+
+		var sendSensorDataPort buffereddatasender.SendSensorDataPort
+		if gateway.Token == nil {
+			sendSensorDataPort = gatManager.sendSensorDataPortFactory.Create()
+		} else {
+			sendSensorDataPort, err = gatManager.sendSensorDataPortFactory.Reload(*gateway.Token, gateway.SecretKey)
+			if err != nil {
+				gatManager.logger.Error("Errore nella creazione del SendSensorDataPort",
+					zap.String("gatewayId", id.String()),
+					zap.Error(err),
+				)
+				return err
+			}
+		}
+
 		dataSender := buffereddatasender.NewBufferedDataSenderService(
 			gateway,
-			gatManager.sendSensorDataPort,
+			sendSensorDataPort,
 			gatManager.bufferedDataPort,
-			make(chan domain.BaseCommand),
-			make(chan struct{}),
-			make(chan error),
+			gatManager.sendSensorDataPortFactory,
+			cmdGatChannel,
+			errGatChannel,
 			gatManager.ctx,
 			gatManager.logger,
 		)
 
 		gatManager.gateways.Mu.Lock()
-		gatManager.gateways.Workers[id] = dataSender
+		gatManager.gateways.Workers[id] = gatewaymanager.GatewayWorker{
+			Sender:     dataSender,
+			ErrChannel: errGatChannel,
+			CmdChannel: cmdGatChannel,
+		}
 		gatManager.gateways.Mu.Unlock()
 
 		gatManager.sensors.Mu.Lock()
 		if gatManager.sensors.Workers[id] == nil {
-			gatManager.sensors.Workers[id] = make(map[gatewaymanager.SensorId]sensor.SimulatedSensor)
+			gatManager.sensors.Workers[id] = make(map[gatewaymanager.SensorId]gatewaymanager.SensorWorker)
 		}
 		gatManager.sensors.Mu.Unlock()
 
 		for sensorId, sensorEntity := range gateway.Sensors {
+			errSensorChannel := make(chan error)
+			cmdSensorChannel := make(chan domain.BaseCommand)
+
 			sensorService := sensor.NewSensorService(
 				sensorEntity,
 				gatManager.saveSensorDataPort,
-				make(chan domain.BaseCommand),
-				make(chan struct{}),
-				make(chan error),
+				cmdSensorChannel,
+				errSensorChannel,
 				gatManager.ctx,
 				gatManager.logger,
 			)
 
 			gatManager.sensors.Mu.Lock()
-			gatManager.sensors.Workers[id][sensorId] = sensorService
+			gatManager.sensors.Workers[id][sensorId] = gatewaymanager.SensorWorker{
+				SimulatedSensor: sensorService,
+				ErrChannel:      errSensorChannel,
+				CmdChannel:      cmdSensorChannel,
+			}
 			gatManager.sensors.Mu.Unlock()
 
 			go sensorService.Start()

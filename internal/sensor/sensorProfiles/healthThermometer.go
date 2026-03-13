@@ -23,20 +23,20 @@ type HealthThermometerData struct {
 }
 
 func generateHealthThermometer(rand Rand) *HealthThermometerData {
-	temperature := 36.0 + rand.Float64()*1.5
+	temperature := 36.0 + rand.Float64()*2 // Celsius, temperatura corporea
 
 	return &HealthThermometerData{
 		TemperatureValue: temperature,
 	}
 }
 
-// Data generation in Celsius
 func (g *HealthThermometerProfile) Generate() *GeneratedSensorData {
 	data := generateHealthThermometer(g.rand)
 
 	return &GeneratedSensorData{
 		SensorId:  g.sensorId,
 		Timestamp: time.Now(),
+		Profile:   g.String(),
 		Data:      data,
 	}
 }

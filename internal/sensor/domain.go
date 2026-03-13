@@ -9,9 +9,25 @@ import (
 )
 
 type SimulatedSensor interface {
+	SensorStarter
+	SensorStopper
+	SensorInterrupter
+	SensorResumer
+}
+
+type SensorStarter interface {
 	Start()
+}
+
+type SensorStopper interface {
 	Stop()
+}
+
+type SensorInterrupter interface {
 	Interrupt()
+}
+
+type SensorResumer interface {
 	Resume()
 }
 
@@ -24,6 +40,7 @@ type SensorStatus string
 const (
 	Active   SensorStatus = "active"
 	Inactive SensorStatus = "inactive"
+	Stopped  SensorStatus = "stopped"
 )
 
 type Sensor struct {
