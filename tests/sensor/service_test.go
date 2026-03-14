@@ -109,7 +109,7 @@ func (m *mockSerializableData) Serialize() ([]byte, error) {
 }
 
 func TestStop(t *testing.T) {
-	//* Verifica che Stop porti il sensore nello stato Stopped *
+	//verifica che stop porti il sensore nello stato stopped
 	sensorEntity := &sensor.Sensor{Status: sensor.Active}
 
 	service := sensor.NewSensorService(
@@ -129,7 +129,7 @@ func TestStop(t *testing.T) {
 }
 
 func TestInterrupt(t *testing.T) {
-	//* Verifica che Interrupt imposti lo stato Inactive *
+	//verifica che Interrupt imposti lo stato Inactive 
 	sensorEntity := &sensor.Sensor{Status: sensor.Active}
 
 	service := sensor.NewSensorService(
@@ -149,7 +149,7 @@ func TestInterrupt(t *testing.T) {
 }
 
 func TestResume(t *testing.T) {
-	//* Verifica che Resume rimetta il sensore in stato Active *
+	//verifica che Resume rimetta il sensore in stato Active 
 	sensorEntity := &sensor.Sensor{Status: sensor.Inactive}
 
 	service := sensor.NewSensorService(
@@ -169,7 +169,7 @@ func TestResume(t *testing.T) {
 }
 
 func TestStartExecutesCommandAndForwardsError(t *testing.T) {
-	//* Verifica che Start esegua il comando e inoltri l'errore su errChannel *
+	//verifica che Start esegua il comando e inoltri l'errore su errchannel
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
