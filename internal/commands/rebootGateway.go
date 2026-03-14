@@ -1,45 +1,26 @@
 package commands
 
-import (
-	"context"
-	"time"
-
-	commanddata "Gateway/internal/gatewayManager/commandData"
-
-	"go.uber.org/zap"
-)
+import buffereddatasender "Gateway/internal/bufferedDataSender"
 
 type RebootGatewayCmd struct {
-	cmdData        commanddata.RebootGateway
-	rebootDuration time.Duration
-	ctx            context.Context
-	logger         *zap.Logger
+	stopper buffereddatasender.DataSenderStopper
+	greeter buffereddatasender.DataSenderGreeter
+	starter buffereddatasender.DataSenderStarter
 }
 
-// TODO: review, vorrrei che il reboot eliminasse e riavviasse da 0 il gateway
-func (c *RebootGatewayCmd) Execute() error {
-	c.logger.Info("Riavvio in corso...", zap.String("gatewayId", c.cmdData.GatewayId.String()))
-
-	select {
-	case <-time.After(c.rebootDuration):
-		c.logger.Info("Gateway riavviato con successo", zap.String("gatewayId", c.cmdData.GatewayId.String()))
-	case <-c.ctx.Done():
-		c.logger.Warn("Reboot interrotto dallo shutdown dell'applicazione", zap.String("gatewayId", c.cmdData.GatewayId.String()))
-		return c.ctx.Err()
+func (g *RebootGatewayCmd) Execute() error {
+	g.stopper.Stop()
+	if err := g.greeter.Hello(); err != nil {
+		return err
 	}
-
+	go g.starter.Start()
 	return nil
 }
 
-func NewRebootGatewayCmd(cmdData commanddata.RebootGateway, rebootDuration time.Duration, ctx context.Context, logger *zap.Logger) *RebootGatewayCmd {
-	return &RebootGatewayCmd{
-		cmdData:        cmdData,
-		rebootDuration: rebootDuration,
-		ctx:            ctx,
-		logger:         logger,
-	}
+func NewRebootGatewayCmd(stopper buffereddatasender.DataSenderStopper, greeter buffereddatasender.DataSenderGreeter, starter buffereddatasender.DataSenderStarter) *RebootGatewayCmd {
+	return &RebootGatewayCmd{stopper: stopper, greeter: greeter, starter: starter}
 }
 
-func (c *RebootGatewayCmd) String() string {
+func (g *RebootGatewayCmd) String() string {
 	return "RebootGatewayCmd"
 }

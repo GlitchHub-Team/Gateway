@@ -13,7 +13,7 @@ import (
 
 type BufferedDataSenderService struct {
 	gateway                   *configmanager.Gateway
-	sendDataRepo              SendSensorDataPort
+	sendDataPort              SendSensorDataPort
 	sendSensorDataPortFactory SendSensorDataPortFactory
 	bufferedDataPort          BufferedDataPort
 	cmdChannel                chan domain.BaseCommand
@@ -23,10 +23,10 @@ type BufferedDataSenderService struct {
 	ticker                    *time.Ticker
 }
 
-func NewBufferedDataSenderService(gateway *configmanager.Gateway, sendDataRepo SendSensorDataPort, bufferedDataPort BufferedDataPort, sendSensorDataPortFactory SendSensorDataPortFactory, cmdChannel chan domain.BaseCommand, errChannel chan error, ctx context.Context, logger *zap.Logger) *BufferedDataSenderService {
+func NewBufferedDataSenderService(gateway *configmanager.Gateway, sendDataPort SendSensorDataPort, bufferedDataPort BufferedDataPort, sendSensorDataPortFactory SendSensorDataPortFactory, cmdChannel chan domain.BaseCommand, errChannel chan error, ctx context.Context, logger *zap.Logger) *BufferedDataSenderService {
 	return &BufferedDataSenderService{
 		gateway:                   gateway,
-		sendDataRepo:              sendDataRepo,
+		sendDataPort:              sendDataPort,
 		sendSensorDataPortFactory: sendSensorDataPortFactory,
 		bufferedDataPort:          bufferedDataPort,
 		cmdChannel:                cmdChannel,
@@ -80,7 +80,7 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 	}
 
 	for _, d := range data {
-		if err := b.sendDataRepo.Send(d, *b.gateway.TenantId); err != nil {
+		if err := b.sendDataPort.Send(d, *b.gateway.TenantId); err != nil {
 			b.logger.Error("Errore nell'invio dei dati del gateway",
 				zap.String("gatewayId", b.gateway.Id.String()),
 				zap.String("tenantId", b.gateway.TenantId.String()),
@@ -102,7 +102,7 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 }
 
 func (b *BufferedDataSenderService) Hello() error {
-	if err := b.sendDataRepo.Hello(b.gateway.Id, b.gateway.PublicIdentifier); err != nil {
+	if err := b.sendDataPort.Hello(b.gateway.Id, b.gateway.PublicIdentifier); err != nil {
 		return err
 	}
 
@@ -114,7 +114,7 @@ func (b *BufferedDataSenderService) Decommission() error {
 		return err
 	}
 
-	b.sendDataRepo = b.sendSensorDataPortFactory.Create()
+	b.sendDataPort = b.sendSensorDataPortFactory.Create()
 	b.gateway.Status = domain.Decommissioned
 	b.gateway.TenantId = nil
 	b.gateway.Token = nil
@@ -127,7 +127,7 @@ func (b *BufferedDataSenderService) Commission(tenantId uuid.UUID, commissionedT
 		return err
 	}
 
-	b.sendDataRepo = sendDataPort
+	b.sendDataPort = sendDataPort
 	b.gateway.Status = domain.Active
 	b.gateway.TenantId = &tenantId
 	b.gateway.Token = &commissionedToken
