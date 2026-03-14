@@ -34,7 +34,7 @@ type HelloMessageDTO struct {
 }
 
 func (r *NATSDataPublisherRepository) Send(d *sensorData, tenantId uuid.UUID) error {
-	subject := fmt.Sprintf("sensor.%s.%s", d.GatewayId, d.SensorId)
+	subject := fmt.Sprintf("sensor.%s.%s.%s", tenantId, d.GatewayId, d.SensorId)
 
 	dto := SensorDataDTO{
 		SensorId:  d.SensorId,
