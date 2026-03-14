@@ -1,50 +1,60 @@
 package commandstests
 
 import (
-	"context"
 	"errors"
 	"testing"
-	"time"
 
 	commands "Gateway/internal/commands"
-	commanddata "Gateway/internal/gatewayManager/commandData"
-
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 func TestRebootGatewayCmdExecute(t *testing.T) {
-	//verifica che RebootGatewayCmd completi il riavvio dopo la durata richiesta
-	cmd := commands.NewRebootGatewayCmd(
-		commanddata.RebootGateway{GatewayId: uuid.New()},
-		10*time.Millisecond,
-		context.Background(),
-		zap.NewNop(),
-	)
+	//verifica che RebootGatewayCmd fermi il sender, saluti e lo riavvii
+	stopper := &mockGatewayStopper{}
+	greeter := &mockGatewayGreeter{}
+	starter := &mockGatewayStarter{started: make(chan struct{}, 1)}
+
+	cmd := commands.NewRebootGatewayCmd(stopper, greeter, starter)
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}
+
+	if stopper.stopCalls != 1 {
+		t.Fatalf("expected Stop to be called once, got %d", stopper.stopCalls)
+	}
+
+	if greeter.helloCalls != 1 {
+		t.Fatalf("expected Hello to be called once, got %d", greeter.helloCalls)
+	}
+
+	waitForSignal(t, starter.started, "gateway start")
 
 	if cmd.String() != "RebootGatewayCmd" {
 		t.Fatalf("expected String() to return RebootGatewayCmd, got %s", cmd.String())
 	}
 }
 
-func TestRebootGatewayCmdExecuteReturnsContextError(t *testing.T) {
-	//verifica che RebootGatewayCmd termini con errore se il context viene cancellato
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
+func TestRebootGatewayCmdExecuteReturnsHelloError(t *testing.T) {
+	//verifica che RebootGatewayCmd non avvii il sender se Hello fallisce
+	expectedErr := errors.New("hello failed")
+	stopper := &mockGatewayStopper{}
+	greeter := &mockGatewayGreeter{err: expectedErr}
+	starter := &mockGatewayStarter{started: make(chan struct{}, 1)}
 
-	cmd := commands.NewRebootGatewayCmd(
-		commanddata.RebootGateway{GatewayId: uuid.New()},
-		time.Second,
-		ctx,
-		zap.NewNop(),
-	)
+	cmd := commands.NewRebootGatewayCmd(stopper, greeter, starter)
 
 	err := cmd.Execute()
-	if !errors.Is(err, context.Canceled) {
-		t.Fatalf("expected error %v, got %v", context.Canceled, err)
+	if !errors.Is(err, expectedErr) {
+		t.Fatalf("expected error %v, got %v", expectedErr, err)
+	}
+
+	if stopper.stopCalls != 1 {
+		t.Fatalf("expected Stop to be called once, got %d", stopper.stopCalls)
+	}
+
+	select {
+	case <-starter.started:
+		t.Fatal("expected Start not to be called on hello error")
+	default:
 	}
 }

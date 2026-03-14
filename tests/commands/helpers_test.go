@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	credentialsgenerator "Gateway/internal/credentialsGenerator"
 	"Gateway/internal/domain"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 	sensor "Gateway/internal/sensor"
@@ -190,6 +191,97 @@ func (m *mockGatewayResetterPort) ResetGateway(cmd *commanddata.ResetGateway, in
 	m.called = true
 	m.receivedCmd = cmd
 	m.receivedInterval = interval
+	return m.err
+}
+
+type mockGatewayCreator struct {
+	err                 error
+	called              bool
+	receivedCmd         *commanddata.CreateGateway
+	receivedCredentials *credentialsgenerator.Credentials
+	receivedStat        domain.GatewayStatus
+}
+
+func (m *mockGatewayCreator) CreateGateway(cmd *commanddata.CreateGateway, credentials *credentialsgenerator.Credentials, status domain.GatewayStatus) error {
+	m.called = true
+	m.receivedCmd = cmd
+	m.receivedCredentials = credentials
+	m.receivedStat = status
+	return m.err
+}
+
+type mockGatewayGreeter struct {
+	err        error
+	helloCalls int
+}
+
+func (m *mockGatewayGreeter) Hello() error {
+	m.helloCalls++
+	return m.err
+}
+
+type mockGatewayStarter struct {
+	started chan struct{}
+}
+
+func (m *mockGatewayStarter) Start() {
+	if m.started != nil {
+		select {
+		case m.started <- struct{}{}:
+		default:
+		}
+	}
+}
+
+type mockGatewayCommissionerPort struct {
+	err          error
+	called       bool
+	receivedCmd  *commanddata.CommissionGateway
+	receivedStat domain.GatewayStatus
+}
+
+func (m *mockGatewayCommissionerPort) CommissionGateway(cmd *commanddata.CommissionGateway, status domain.GatewayStatus) error {
+	m.called = true
+	m.receivedCmd = cmd
+	m.receivedStat = status
+	return m.err
+}
+
+type mockGatewayCommissioner struct {
+	err              error
+	commissionCalls  int
+	receivedTenantID uuid.UUID
+	receivedToken    string
+}
+
+func (m *mockGatewayCommissioner) Commission(tenantID uuid.UUID, commissionedToken string) error {
+	m.commissionCalls++
+	m.receivedTenantID = tenantID
+	m.receivedToken = commissionedToken
+	return m.err
+}
+
+type mockGatewayDecommissionerPort struct {
+	err          error
+	called       bool
+	receivedCmd  *commanddata.DecommissionGateway
+	receivedStat domain.GatewayStatus
+}
+
+func (m *mockGatewayDecommissionerPort) DecommissionGateway(cmd *commanddata.DecommissionGateway, status domain.GatewayStatus) error {
+	m.called = true
+	m.receivedCmd = cmd
+	m.receivedStat = status
+	return m.err
+}
+
+type mockGatewayDecommissioner struct {
+	err               error
+	decommissionCalls int
+}
+
+func (m *mockGatewayDecommissioner) Decommission() error {
+	m.decommissionCalls++
 	return m.err
 }
 
