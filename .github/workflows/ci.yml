@@ -7,6 +7,7 @@ on:
       - main
       - master
       - develop
+      - 'issue-*'
 
 permissions:
   contents: read
