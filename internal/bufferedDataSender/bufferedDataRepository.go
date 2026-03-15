@@ -25,7 +25,7 @@ func NewBufferedDataRepository(ctx context.Context, conn sensor.BufferDbConnecti
 }
 
 func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]*sensorData, error) {
-	query := `SELECT sensorId, gatewayId, timestamp, profile, value
+	query := `SELECT sensorId, gatewayId, timestamp, profile, json(value)
 				FROM buffer 
 				WHERE gatewayId = ? 
 				ORDER BY timestamp ASC`

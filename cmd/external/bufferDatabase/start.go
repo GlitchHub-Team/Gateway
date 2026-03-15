@@ -27,7 +27,7 @@ func createBufferTable(db *sql.DB) error {
 }
 
 func NewBufferDatabase() sensor.BufferDbConnection {
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite", "file:bufferdb?mode=memory&cache=shared")
 	if err != nil {
 		log.Fatalf("Error while opening DB: %v", err)
 	}

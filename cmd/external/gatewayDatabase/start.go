@@ -42,7 +42,7 @@ func createSensorTable(db *sql.DB, ctx context.Context) error {
 }
 
 func NewGatewayDatabase(ctx context.Context) (*configrepositories.ConfigDbConnection, error) {
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite", "file:gatewaydb?mode=memory&cache=shared")
 	if err != nil {
 		return nil, err
 	}
