@@ -13,3 +13,9 @@ MVP repository per lo sviluppo Gateway
 
 # Organizzazione cartelle
 Le *cartelle* e di conseguenza i *package* sono organizzati per *Component* come suggerito nell'ultimo capitolo di "Clean Architecture" di Robert C. Martin.
+
+# Leggere Code Coverage
+Seguire i seguenti passaggi per leggere la code coverage:
+1. `chmod +x testCoverage.sh`
+2. `./testCoverage.sh`
+3. Aprire il file `coverage.html` con un browser per visualizzare la code coverage in modo interattivo.
