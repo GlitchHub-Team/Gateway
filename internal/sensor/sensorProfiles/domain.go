@@ -19,6 +19,7 @@ type SerializableData interface {
 type GeneratedSensorData struct {
 	SensorId  uuid.UUID
 	Timestamp time.Time
+	Profile   string
 	Data      SerializableData
 }
 

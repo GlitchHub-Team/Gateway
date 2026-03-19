@@ -1,52 +1,33 @@
 package commands
 
 import (
-	"fmt"
-
 	configmanager "Gateway/internal/configManager"
-	gatewaymanager "Gateway/internal/gatewayManager"
 	commanddata "Gateway/internal/gatewayManager/commandData"
+	"Gateway/internal/sensor"
 )
 
 type InterruptSensorCmd struct {
-	cmdData       *commanddata.InterruptSensor
-	configService configmanager.SensorInterrupterPort
-	sensorWorkers *gatewaymanager.SensorWorkers
+	cmdData               *commanddata.InterruptSensor
+	simulatedSensor       sensor.SensorInterrupter
+	sensorInterrupterPort configmanager.SensorInterrupterPort
+	status                sensor.SensorStatus
 }
 
 func (c *InterruptSensorCmd) Execute() error {
-	if err := c.configService.InterruptSensor(c.cmdData); err != nil {
+	if err := c.sensorInterrupterPort.InterruptSensor(c.cmdData, c.status); err != nil {
 		return err
 	}
 
-	c.sensorWorkers.Mu.RLock()
-	sensors, exists := c.sensorWorkers.Workers[c.cmdData.GatewayId]
-	c.sensorWorkers.Mu.RUnlock()
-
-	if !exists {
-		return fmt.Errorf("nessun gateway trovato per l'interruzione del sensore, id gateway %s", c.cmdData.GatewayId)
-	}
-
-	c.sensorWorkers.Mu.RLock()
-	sensorWorker, sensorExists := sensors[c.cmdData.SensorId]
-	c.sensorWorkers.Mu.RUnlock()
-
-	if !sensorExists {
-		return fmt.Errorf("nessun sensore trovato per l'interruzione, id sensore %s", c.cmdData.SensorId)
-	}
-
-	c.sensorWorkers.Mu.Lock()
-	sensorWorker.Interrupt()
-	c.sensorWorkers.Mu.Unlock()
-
+	c.simulatedSensor.Interrupt()
 	return nil
 }
 
-func NewInterruptSensorCmd(cmdData *commanddata.InterruptSensor, configService configmanager.SensorInterrupterPort, sensorWorkers *gatewaymanager.SensorWorkers) *InterruptSensorCmd {
+func NewInterruptSensorCmd(cmdData *commanddata.InterruptSensor, simulatedSensor sensor.SensorInterrupter, interrupterPort configmanager.SensorInterrupterPort, status sensor.SensorStatus) *InterruptSensorCmd {
 	return &InterruptSensorCmd{
-		cmdData:       cmdData,
-		configService: configService,
-		sensorWorkers: sensorWorkers,
+		cmdData:               cmdData,
+		simulatedSensor:       simulatedSensor,
+		sensorInterrupterPort: interrupterPort,
+		status:                status,
 	}
 }
 

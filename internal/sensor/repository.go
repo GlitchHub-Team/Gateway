@@ -27,12 +27,12 @@ func NewSQLiteSaveSensorDataRepository(ctx context.Context, conn BufferDbConnect
 }
 
 func (r *SQLiteSaveSensorDataRepository) Save(data *profiles.GeneratedSensorData, gatewayId uuid.UUID) error {
-	query := `INSERT INTO buffer (gatewayId, sensorId, timestamp, value) VALUES (?, ?, ?, jsonb(?))`
+	query := `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, jsonb(?))`
 	serializedData, err := data.Data.Serialize()
 	if err != nil {
 		return fmt.Errorf("errore nella serializzazione dei dati: %w, gatewayId: %s, sensorId: %s", err, gatewayId, data.SensorId)
 	}
-	_, err = r.dbConnection.ExecContext(r.ctx, query, gatewayId, data.SensorId, data.Timestamp, serializedData)
+	_, err = r.dbConnection.ExecContext(r.ctx, query, gatewayId, data.SensorId, data.Timestamp, data.Profile, serializedData)
 	if err != nil {
 		return fmt.Errorf("errore nel salvataggio del dato: %w, gatewayId: %s, sensorId: %s", err, gatewayId, data.SensorId)
 	}

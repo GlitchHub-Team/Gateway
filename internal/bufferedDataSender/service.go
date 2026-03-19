@@ -7,67 +7,63 @@ import (
 	configmanager "Gateway/internal/configManager"
 	"Gateway/internal/domain"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-const (
-	defaultInterval = 5 * time.Second
-)
-
 type BufferedDataSenderService struct {
-	gateway          *configmanager.Gateway
-	sendDataRepo     SendSensorDataPort
-	bufferedDataPort BufferedDataPort
-	cmdChannel       chan domain.BaseCommand
-	stopChannel      chan struct{}
-	errChanel        chan error
-	ctx              context.Context
-	logger           *zap.Logger
+	gateway                   *configmanager.Gateway
+	sendDataPort              SendSensorDataPort
+	sendSensorDataPortFactory SendSensorDataPortFactory
+	bufferedDataPort          BufferedDataPort
+	cmdChannel                chan domain.BaseCommand
+	errChanel                 chan error
+	ctx                       context.Context
+	logger                    *zap.Logger
+	ticker                    *time.Ticker
 }
 
-func NewBufferedDataSenderService(gateway *configmanager.Gateway, sendDataRepo SendSensorDataPort, bufferedDataPort BufferedDataPort, cmdChannel chan domain.BaseCommand, stopChannel chan struct{}, errChannel chan error, ctx context.Context, logger *zap.Logger) *BufferedDataSenderService {
+func NewBufferedDataSenderService(gateway *configmanager.Gateway, sendDataPort SendSensorDataPort, bufferedDataPort BufferedDataPort, sendSensorDataPortFactory SendSensorDataPortFactory, cmdChannel chan domain.BaseCommand, errChannel chan error, ctx context.Context, logger *zap.Logger) *BufferedDataSenderService {
 	return &BufferedDataSenderService{
-		gateway:          gateway,
-		sendDataRepo:     sendDataRepo,
-		bufferedDataPort: bufferedDataPort,
-		cmdChannel:       cmdChannel,
-		stopChannel:      stopChannel,
-		errChanel:        errChannel,
-		ctx:              ctx,
-		logger:           logger,
+		gateway:                   gateway,
+		sendDataPort:              sendDataPort,
+		sendSensorDataPortFactory: sendSensorDataPortFactory,
+		bufferedDataPort:          bufferedDataPort,
+		cmdChannel:                cmdChannel,
+		errChanel:                 errChannel,
+		ctx:                       ctx,
+		logger:                    logger,
+		ticker:                    time.NewTicker(gateway.Interval),
 	}
 }
 
 func (b *BufferedDataSenderService) Start() {
-	ticker := time.NewTicker(b.gateway.Interval)
+	defer b.ticker.Stop()
 
-	defer ticker.Stop()
-	for {
+	for b.gateway.Status != domain.Stopped {
 		select {
 		case cmd := <-b.cmdChannel:
-			if err := cmd.Execute(); err != nil {
+			err := cmd.Execute()
+			if err != nil {
 				b.logger.Error("Errore nell'esecuzione del comando",
 					zap.String("command", cmd.String()),
 					zap.String("gatewayId", b.gateway.Id.String()),
 					zap.Error(err),
 				)
-				b.errChanel <- err
 			}
-		case <-ticker.C:
-			if b.gateway.Status == configmanager.Inactive {
-				continue
+			b.errChanel <- err
+		case <-b.ticker.C:
+			if b.gateway.Status == domain.Active {
+				err := b.sendBufferedData()
+				if err != nil {
+					b.logger.Error("Errore nell'invio dei dati bufferizzati",
+						zap.String("gatewayId", b.gateway.Id.String()),
+						zap.Error(err),
+					)
+				}
 			}
-			err := b.sendBufferedData()
-			if err != nil {
-				b.logger.Error("Errore nell'invio dei dati bufferizzati",
-					zap.String("gatewayId", b.gateway.Id.String()),
-					zap.Error(err),
-				)
-			}
-		case <-b.stopChannel:
-			return
 		case <-b.ctx.Done():
-			b.logger.Error("Gateway interrotto",
+			b.logger.Warn("Gateway interrotto",
 				zap.String("gatewayId", b.gateway.Id.String()),
 				zap.Error(b.ctx.Err()),
 			)
@@ -84,9 +80,10 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 	}
 
 	for _, d := range data {
-		if err := b.sendDataRepo.Send(d); err != nil {
+		if err := b.sendDataPort.Send(d, *b.gateway.TenantId); err != nil {
 			b.logger.Error("Errore nell'invio dei dati del gateway",
 				zap.String("gatewayId", b.gateway.Id.String()),
+				zap.String("tenantId", b.gateway.TenantId.String()),
 				zap.Error(err),
 			)
 			continue
@@ -104,33 +101,58 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 	return nil
 }
 
-func (b *BufferedDataSenderService) Stop() {
-	select {
-	case b.stopChannel <- struct{}{}:
-	default:
+func (b *BufferedDataSenderService) Hello() error {
+	if err := b.sendDataPort.Hello(b.gateway.Id, b.gateway.PublicIdentifier); err != nil {
+		return err
 	}
+
+	return nil
 }
 
-func (b *BufferedDataSenderService) Interrupt() {
-	b.gateway.Status = configmanager.Inactive
+func (b *BufferedDataSenderService) Decommission() error {
+	if err := b.bufferedDataPort.CleanWholeBuffer(b.gateway.Id); err != nil {
+		return err
+	}
+
+	b.sendDataPort = b.sendSensorDataPortFactory.Create()
+	b.gateway.Status = domain.Decommissioned
+	b.gateway.TenantId = nil
+	b.gateway.Token = nil
+	return nil
 }
 
-func (b *BufferedDataSenderService) Resume() {
-	b.gateway.Status = configmanager.Active
+func (b *BufferedDataSenderService) Commission(tenantId uuid.UUID, commissionedToken string) error {
+	sendDataPort, err := b.sendSensorDataPortFactory.Reload(commissionedToken, b.gateway.SecretKey)
+	if err != nil {
+		return err
+	}
+
+	b.sendDataPort = sendDataPort
+	b.gateway.Status = domain.Active
+	b.gateway.TenantId = &tenantId
+	b.gateway.Token = &commissionedToken
+
+	return nil
 }
 
-func (b *BufferedDataSenderService) Reset() error {
+func (b *BufferedDataSenderService) Reset(defaultInterval time.Duration) error {
 	b.gateway.Interval = defaultInterval
+	b.ticker.Reset(defaultInterval)
 	if err := b.bufferedDataPort.CleanWholeBuffer(b.gateway.Id); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (b *BufferedDataSenderService) Hello() error {
-	if err := b.sendDataRepo.Hello(b.gateway.Id); err != nil {
-		return err
-	}
+// Alert: in caso si vogliano chiamare dall'esterno della goroutine bisogna istanziare un mutex
+func (b *BufferedDataSenderService) Stop() {
+	b.gateway.Status = domain.Stopped
+}
 
-	return nil
+func (b *BufferedDataSenderService) Interrupt() {
+	b.gateway.Status = domain.Inactive
+}
+
+func (b *BufferedDataSenderService) Resume() {
+	b.gateway.Status = domain.Active
 }

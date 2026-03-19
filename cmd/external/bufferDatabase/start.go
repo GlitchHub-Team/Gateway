@@ -16,6 +16,7 @@ func createBufferTable(db *sql.DB) error {
 		gatewayId VARCHAR(255) NOT NULL,
 		sensorId VARCHAR(255) NOT NULL,
 		timestamp DATETIME NOT NULL,
+		profile VARCHAR(255) NOT NULL,
 		value JSONB NOT NULL,
 		PRIMARY KEY (gatewayId, sensorId, timestamp)
 	);
@@ -26,7 +27,7 @@ func createBufferTable(db *sql.DB) error {
 }
 
 func NewBufferDatabase() sensor.BufferDbConnection {
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite", "file:bufferdb?mode=memory&cache=shared")
 	if err != nil {
 		log.Fatalf("Error while opening DB: %v", err)
 	}

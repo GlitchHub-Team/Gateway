@@ -21,25 +21,25 @@ type GatewaysLoader interface {
 }
 
 type GatewayManagerService struct {
-	gateways           gatewaymanager.GatewayWorkers
-	sensors            gatewaymanager.SensorWorkers
-	saveSensorDataPort sensor.SaveSensorDataPort
-	bufferedDataPort   buffereddatasender.BufferedDataPort
-	sendSensorDataPort buffereddatasender.SendSensorDataPort
-	configPort         configmanager.ConfigPort
-	ctx                context.Context
-	logger             *zap.Logger
+	gateways                  gatewaymanager.GatewayWorkers
+	sensors                   gatewaymanager.SensorWorkers
+	saveSensorDataPort        sensor.SaveSensorDataPort
+	bufferedDataPort          buffereddatasender.BufferedDataPort
+	sendSensorDataPortFactory buffereddatasender.SendSensorDataPortFactory
+	configPort                configmanager.ConfigPort
+	ctx                       context.Context
+	logger                    *zap.Logger
 }
 
-func NewGatewayManagerService(gateways gatewaymanager.GatewayWorkers, sensors gatewaymanager.SensorWorkers, saveSensorDataPort sensor.SaveSensorDataPort, bufferedDataPort buffereddatasender.BufferedDataPort, sendSensorDataPort buffereddatasender.SendSensorDataPort, configPort configmanager.ConfigPort, ctx context.Context, logger *zap.Logger) *GatewayManagerService {
+func NewGatewayManagerService(gateways gatewaymanager.GatewayWorkers, sensors gatewaymanager.SensorWorkers, saveSensorDataPort sensor.SaveSensorDataPort, bufferedDataPort buffereddatasender.BufferedDataPort, sendSensorDataPortFactory buffereddatasender.SendSensorDataPortFactory, configPort configmanager.ConfigPort, ctx context.Context, logger *zap.Logger) *GatewayManagerService {
 	return &GatewayManagerService{
-		gateways:           gateways,
-		sensors:            sensors,
-		saveSensorDataPort: saveSensorDataPort,
-		bufferedDataPort:   bufferedDataPort,
-		sendSensorDataPort: sendSensorDataPort,
-		configPort:         configPort,
-		ctx:                ctx,
-		logger:             logger,
+		gateways:                  gateways,
+		sensors:                   sensors,
+		saveSensorDataPort:        saveSensorDataPort,
+		bufferedDataPort:          bufferedDataPort,
+		sendSensorDataPortFactory: sendSensorDataPortFactory,
+		configPort:                configPort,
+		ctx:                       ctx,
+		logger:                    logger,
 	}
 }

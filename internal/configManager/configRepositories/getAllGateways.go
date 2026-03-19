@@ -5,6 +5,7 @@ import (
 	"time"
 
 	configmanager "Gateway/internal/configManager"
+	"Gateway/internal/domain"
 	"Gateway/internal/sensor"
 	profiles "Gateway/internal/sensor/sensorProfiles"
 
@@ -13,7 +14,7 @@ import (
 
 func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.Gateway, error) {
 	query := `
-		SELECT id, tenantId, status, interval
+		SELECT id, tenantId, status, interval, publicIdentifier, secretKey, token
 		FROM gateways
 	`
 	rows, err := r.dbConnection.QueryContext(r.ctx, query)
@@ -23,10 +24,13 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 
 	gateways := make(map[uuid.UUID]*configmanager.Gateway)
 	for rows.Next() {
-		var gatewayId, tenantId uuid.UUID
+		var gatewayId uuid.UUID
+		var tenantId *uuid.UUID
 		var statusStr string
 		var interval int
-		if err := rows.Scan(&gatewayId, &tenantId, &statusStr, &interval); err != nil {
+		var publicIdentifier, secretKey string
+		var token *string
+		if err := rows.Scan(&gatewayId, &tenantId, &statusStr, &interval, &publicIdentifier, &secretKey, &token); err != nil {
 			return nil, fmt.Errorf("fallito a scansionare una riga gateway: %w", err)
 		}
 
@@ -36,11 +40,14 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 		}
 
 		gateways[gatewayId] = &configmanager.Gateway{
-			Id:       gatewayId,
-			TenantId: &tenantId,
-			Status:   configmanager.GatewayStatus(statusStr),
-			Sensors:  sensors,
-			Interval: time.Duration(interval) * time.Millisecond,
+			Id:               gatewayId,
+			TenantId:         tenantId,
+			Status:           domain.GatewayStatus(statusStr),
+			Sensors:          sensors,
+			Interval:         time.Duration(interval) * time.Millisecond,
+			PublicIdentifier: publicIdentifier,
+			SecretKey:        secretKey,
+			Token:            token,
 		}
 	}
 
@@ -48,7 +55,7 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 		return nil, fmt.Errorf("fallito a chiudere le righe nel caricamento dei gateway: %w", err)
 	}
 
-	return gateways, rows.Err()
+	return gateways, nil
 }
 
 func (r *SQLiteConfigRepository) loadSensors(gatewayId uuid.UUID) (map[uuid.UUID]*sensor.Sensor, error) {

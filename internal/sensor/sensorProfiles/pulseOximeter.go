@@ -24,8 +24,8 @@ type PulseOximeterData struct {
 }
 
 func generatePulseOximeter(rand Rand) *PulseOximeterData {
-	spO2 := 95.0 + rand.Float64()*5.0
-	pulseRate := 60 + rand.Intn(41)
+	spO2 := 95.0 + rand.Float64()*5.0 // SpO2 tra 95% e 100%
+	pulseRate := 60 + rand.Intn(41)   // da 60 a 100 bpm, range tipico per un adulto a riposo
 
 	return &PulseOximeterData{
 		SpO2Value:      spO2,
@@ -39,6 +39,7 @@ func (g *PulseOximeterProfile) Generate() *GeneratedSensorData {
 	return &GeneratedSensorData{
 		SensorId:  g.sensorId,
 		Timestamp: time.Now(),
+		Profile:   g.String(),
 		Data:      data,
 	}
 }

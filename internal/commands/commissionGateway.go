@@ -1,26 +1,37 @@
 package commands
 
 import (
+	buffereddatasender "Gateway/internal/bufferedDataSender"
 	configmanager "Gateway/internal/configManager"
+	"Gateway/internal/domain"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 )
 
 type CommissionGatewayCmd struct {
-	cmdData       commanddata.CommissionGateway
-	configService *configmanager.GatewayCommissionerPort
-	errChannel    chan error
+	cmdData       *commanddata.CommissionGateway
+	configService configmanager.GatewayCommissionerPort
+	commissioner  buffereddatasender.DataSenderCommissioner
+	status        domain.GatewayStatus
 }
 
 func (c *CommissionGatewayCmd) Execute() error {
-	// Logic to create a new gateway using the configService
+	if err := c.configService.CommissionGateway(c.cmdData, c.status); err != nil {
+		return err
+	}
+
+	if err := c.commissioner.Commission(c.cmdData.TenantId, c.cmdData.CommissionedToken); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func NewCommissionGatewayCmd(cmdData commanddata.CommissionGateway, configService *configmanager.GatewayCommissionerPort, errChannel chan error) *CommissionGatewayCmd {
+func NewCommissionGatewayCmd(cmdData *commanddata.CommissionGateway, configService configmanager.GatewayCommissionerPort, commissioner buffereddatasender.DataSenderCommissioner, status domain.GatewayStatus) *CommissionGatewayCmd {
 	return &CommissionGatewayCmd{
 		cmdData:       cmdData,
 		configService: configService,
-		errChannel:    errChannel,
+		commissioner:  commissioner,
+		status:        status,
 	}
 }
 

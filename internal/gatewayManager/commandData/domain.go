@@ -8,17 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type SensorFrequency int
-
-type ChangeSensorFrequency struct {
-	GatewayId uuid.UUID
-	Profile   profiles.SensorProfile
-	Frequency SensorFrequency
-}
-
 type CommissionGateway struct {
-	GatewayId uuid.UUID
-	TenantId  uuid.UUID
+	GatewayId         uuid.UUID
+	TenantId          uuid.UUID
+	CommissionedToken string
 }
 
 type CreateGateway struct {
