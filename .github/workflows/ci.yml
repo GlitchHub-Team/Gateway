@@ -71,7 +71,7 @@ jobs:
           printf '%s\n' "${{ secrets.GATEWAY_BASE_CREDS }}" > cmd/base.creds
           printf '%s\n' "${{ secrets.TEST_CREDS }}" > cmd/admin_test.creds
 
-          chmod 600 cmd/data_consumer.creds cmd/admin_test.creds
+          chmod 600 cmd/base.creds cmd/admin_test.creds
 
       - name: Go checks (root module)
         shell: bash
