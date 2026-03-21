@@ -34,16 +34,11 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 			return nil, fmt.Errorf("fallito a scansionare una riga gateway: %w", err)
 		}
 
-		sensors, err := r.loadSensors(gatewayId)
-		if err != nil {
-			return nil, fmt.Errorf("fallito a recuperare i sensori del gateway %s: %w", gatewayId, err)
-		}
-
 		gateways[gatewayId] = &configmanager.Gateway{
 			Id:               gatewayId,
 			TenantId:         tenantId,
 			Status:           domain.GatewayStatus(statusStr),
-			Sensors:          sensors,
+			Sensors:          nil,
 			Interval:         time.Duration(interval) * time.Millisecond,
 			PublicIdentifier: publicIdentifier,
 			SecretKey:        secretKey,
@@ -53,6 +48,14 @@ func (r *SQLiteConfigRepository) GetAllGateways() (map[uuid.UUID]*configmanager.
 
 	if err := rows.Close(); err != nil {
 		return nil, fmt.Errorf("fallito a chiudere le righe nel caricamento dei gateway: %w", err)
+	}
+
+	for id, gateway := range gateways {
+		sensors, err := r.loadSensors(id)
+		if err != nil {
+			return nil, fmt.Errorf("fallito a recuperare i sensori del gateway %s: %w", id, err)
+		}
+		gateway.Sensors = sensors
 	}
 
 	return gateways, nil
