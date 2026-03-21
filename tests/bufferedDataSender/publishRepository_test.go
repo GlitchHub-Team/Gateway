@@ -22,7 +22,7 @@ func newMockNATSConnection(t *testing.T) *nats.Conn {
 	t.Helper()
 
 	root := moduleRoot(t)
-	token, seed := parseNATSCreds(t, filepath.Join(root, "cmd", os.Getenv("BASE_CREDS_PATH")))
+	token, seed := parseNATSCreds(t, filepath.Join(root, "cmd", os.Getenv("GATEWAY_BASE_CREDS_PATH")))
 
 	host := natsutil.NatsAddress("127.0.0.1")
 	port := natsutil.NatsPort(getFreePort(t))
