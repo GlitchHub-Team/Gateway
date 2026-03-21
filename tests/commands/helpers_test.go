@@ -8,7 +8,6 @@ import (
 	"Gateway/internal/domain"
 	commanddata "Gateway/internal/gatewayManager/commandData"
 	sensor "Gateway/internal/sensor"
-	profiles "Gateway/internal/sensor/sensorProfiles"
 
 	"github.com/google/uuid"
 )
@@ -285,21 +284,22 @@ func (m *mockGatewayDecommissioner) Decommission() error {
 	return m.err
 }
 
+/*
 type mockSerializableData struct{}
 
-func (m *mockSerializableData) Serialize() ([]byte, error) {
-	return []byte(`{"mock":true}`), nil
-}
-
-func newGeneratedSensorData() *profiles.GeneratedSensorData {
-	return &profiles.GeneratedSensorData{
-		SensorId:  uuid.New(),
-		Timestamp: time.Now(),
-		Profile:   "mock-profile",
-		Data:      &mockSerializableData{},
+	func (m *mockSerializableData) Serialize() ([]byte, error) {
+		return []byte(`{"mock":true}`), nil
 	}
-}
 
+	func newGeneratedSensorData() *profiles.GeneratedSensorData {
+		return &profiles.GeneratedSensorData{
+			SensorId:  uuid.New(),
+			Timestamp: time.Now(),
+			Profile:   "mock-profile",
+			Data:      &mockSerializableData{},
+		}
+	}
+*/
 func waitForSignal(t *testing.T, ch <-chan struct{}, label string) {
 	t.Helper()
 
