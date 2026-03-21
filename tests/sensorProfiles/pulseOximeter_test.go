@@ -5,6 +5,7 @@ import (
 	"time"
 
 	profiles "Gateway/internal/sensor/sensorProfiles"
+	testutils "Gateway/tests/utils"
 
 	"github.com/google/uuid"
 )
@@ -12,7 +13,7 @@ import (
 func TestPulseOximeterGenerate(t *testing.T) {
 	// Verifica che il profilo produca insieme saturazione e battito con i valori attesi.
 	sensorID := uuid.New()
-	profile := profiles.NewPulseOximeterProfile(sensorID, &MockRandomGenerator{nInt: 10, nFloat: 0.5})
+	profile := profiles.NewPulseOximeterProfile(sensorID, &testutils.MockRandomGenerator{NInt: 10, NFloat: 0.5})
 
 	got := profile.Generate()
 

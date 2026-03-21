@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"os"
+	"strconv"
 
 	"github.com/nats-io/nats.go"
 	"go.uber.org/fx"
@@ -9,14 +11,22 @@ import (
 
 	bufferdatabase "Gateway/cmd/external/bufferDatabase"
 	gatewaydatabase "Gateway/cmd/external/gatewayDatabase"
-	natsserver "Gateway/cmd/external/natsServer"
 	"Gateway/cmd/logger"
 	modules "Gateway/cmd/modules"
-	buffereddatasender "Gateway/internal/bufferedDataSender"
 	commandcontrollers "Gateway/internal/gatewayManager/commandControllers"
 	gatewayservices "Gateway/internal/gatewayManager/gatewayServices"
+	"Gateway/internal/natsutil"
 	sensorprofiles "Gateway/internal/sensor/sensorProfiles"
 )
+
+func envInt(key string, fallback int) int {
+	if v := os.Getenv(key); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			return n
+		}
+	}
+	return fallback
+}
 
 func main() {
 	fx.New(
@@ -35,12 +45,12 @@ func main() {
 		fx.Supply(commandcontrollers.ResetGatewaySubject("commands.resetgateway")),
 		fx.Supply(commandcontrollers.ResumeGatewaySubject("commands.resumegateway")),
 		fx.Supply(commandcontrollers.ResumeSensorSubject("commands.resumesensor")),
-		fx.Supply(buffereddatasender.NatsAddress("localhost")),
-		fx.Supply(buffereddatasender.NatsPort(4222)),
-		fx.Supply(buffereddatasender.NatsToken("")),
-		fx.Supply(buffereddatasender.NatsSeed("")),
-		fx.Provide(natsserver.NewNATSConnection),
-		fx.Provide(natsserver.NewJetStreamContext),
+		fx.Supply(natsutil.NatsAddress(os.Getenv("NATS_HOST"))),
+		fx.Supply(natsutil.NatsPort(envInt("NATS_PORT", 4222))),
+		fx.Supply(natsutil.NatsCredsPath(os.Getenv("BASE_CREDS_PATH"))),
+		fx.Supply(natsutil.NatsCAPemPath(os.Getenv("CA_PEM_PATH"))),
+		fx.Provide(natsutil.NewNATSConnection),
+		fx.Provide(natsutil.NewJetStreamContext),
 		fx.Provide(gatewaydatabase.NewGatewayDatabase),
 		fx.Provide(bufferdatabase.NewBufferDatabase),
 		fx.Provide(sensorprofiles.NewRand),

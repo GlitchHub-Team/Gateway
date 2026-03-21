@@ -5,17 +5,17 @@ import (
 	"strconv"
 	"time"
 
-	buffereddatasender "Gateway/internal/bufferedDataSender"
 	"Gateway/internal/natsutil"
 
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 )
 
-func NewNATSConnection(address buffereddatasender.NatsAddress, port buffereddatasender.NatsPort, token buffereddatasender.NatsToken, seed buffereddatasender.NatsSeed) *nats.Conn {
+func NewMockNATSConnection(address natsutil.NatsAddress, port natsutil.NatsPort, token natsutil.NatsToken, seed natsutil.NatsSeed) *nats.Conn {
 	opts := &server.Options{
-		Host: string(address),
-		Port: int(port),
+		Host:      string(address),
+		Port:      int(port),
+		JetStream: true,
 	}
 	s, err := server.NewServer(opts)
 	if err != nil {
@@ -34,12 +34,4 @@ func NewNATSConnection(address buffereddatasender.NatsAddress, port buffereddata
 		log.Fatalf("Error while connecting to NATS server: %v", err)
 	}
 	return nc
-}
-
-func NewJetStreamContext(nc *nats.Conn) nats.JetStreamContext {
-	js, err := nc.JetStream()
-	if err != nil {
-		log.Fatalf("Error while creating JetStream context: %v", err)
-	}
-	return js
 }

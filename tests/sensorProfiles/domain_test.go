@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	profiles "Gateway/internal/sensor/sensorProfiles"
+	testutils "Gateway/tests/utils"
 
 	"github.com/google/uuid"
 )
 
 func TestParseSensorProfile(t *testing.T) {
-	//verifica che ogni stringa valida venga tradotta nel tipo concreto di profilo corretto
+	// verifica che ogni stringa valida venga tradotta nel tipo concreto di profilo corretto
 	tests := []struct {
 		name        string
 		profileType string
@@ -50,7 +51,7 @@ func TestParseSensorProfile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := profiles.ParseSensorProfile(tt.profileType, &MockRandomGenerator{})
+			got := profiles.ParseSensorProfile(tt.profileType, &testutils.MockRandomGenerator{})
 			if got == nil {
 				t.Fatal("expected non-nil profile")
 			}
@@ -91,8 +92,8 @@ func TestParseSensorProfile(t *testing.T) {
 }
 
 func TestParseSensorProfileUnknown(t *testing.T) {
-	//verifica che un nome profilo non supportato ritorni null
-	got := profiles.ParseSensorProfile("Unknown", &MockRandomGenerator{})
+	// verifica che un nome profilo non supportato ritorni null
+	got := profiles.ParseSensorProfile("Unknown", &testutils.MockRandomGenerator{})
 	if got != nil {
 		t.Fatalf("expected nil profile, got %T", got)
 	}

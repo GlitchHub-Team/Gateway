@@ -42,7 +42,31 @@ func createSensorTable(db *sql.DB, ctx context.Context) error {
 }
 
 func NewGatewayDatabase(ctx context.Context) (*configrepositories.ConfigDbConnection, error) {
-	db, err := sql.Open("sqlite", "file:gatewaydb?mode=memory&cache=shared")
+	db, err := sql.Open("sqlite", "file:gateway.db")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = db.ExecContext(ctx, "PRAGMA foreign_keys = ON;")
+	if err != nil {
+		return nil, err
+	}
+
+	err = createGatewayTable(db, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = createSensorTable(db, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &configrepositories.ConfigDbConnection{DB: db}, nil
+}
+
+func NewMockGatewayDatabase(ctx context.Context) (*configrepositories.ConfigDbConnection, error) {
+	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,23 @@
+services:
+  gateway:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    user: vscode
+    env_file:
+      - ../Infrastructure/.env
+    volumes:
+      - ..:/workspaces/${localWorkspaceFolderBasename}:cached
+    command: sleep infinity
+    environment:
+      TEST_CREDS_PATH: admin_test.creds
+      BASE_CREDS_PATH: base.creds
+      CA_PEM_PATH: ca.pem
+    depends_on:
+      timescale:
+        condition: service_healthy
+      nats:
+        condition: service_started
+
+include:
+  - path: ../Infrastructure/docker-compose.yml
