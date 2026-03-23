@@ -3,11 +3,9 @@ package buffereddatasender_test
 import (
 	"context"
 	"net"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
 	"testing"
+
+	"github.com/nats-io/nkeys"
 )
 
 func getFreePort(t *testing.T) int {
@@ -32,41 +30,20 @@ func getFreePort(t *testing.T) int {
 	return tcpAddr.Port
 }
 
-func moduleRoot(t *testing.T) string {
+func newMockNATSCreds(t *testing.T) (token string, seed string) {
 	t.Helper()
-	_, file, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("unable to resolve caller path")
-	}
-	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
-}
 
-func parseNATSCreds(t *testing.T, credsPath string) (token string, seed string) {
-	t.Helper()
-	content, err := os.ReadFile(credsPath)
+	kp, err := nkeys.CreateUser()
 	if err != nil {
-		t.Fatalf("unable to read creds file %s: %v", credsPath, err)
+		t.Fatalf("failed to create nkey pair: %v", err)
 	}
-	text := string(content)
 
-	token = between(text, "-----BEGIN NATS USER JWT-----", "------END NATS USER JWT------")
-	seed = between(text, "-----BEGIN USER NKEY SEED-----", "------END USER NKEY SEED------")
-	if token == "" || seed == "" {
-		t.Fatalf("unable to parse token/seed from %s", credsPath)
+	seedBytes, err := kp.Seed()
+	if err != nil {
+		t.Fatalf("failed to extract nkey seed: %v", err)
 	}
-	return token, seed
-}
 
-func between(text, start, end string) string {
-	startIdx := strings.Index(text, start)
-	if startIdx < 0 {
-		return ""
-	}
-	startIdx += len(start)
-
-	endIdx := strings.Index(text[startIdx:], end)
-	if endIdx < 0 {
-		return ""
-	}
-	return strings.TrimSpace(text[startIdx : startIdx+endIdx])
+	// The mock server does not validate the JWT, but the client-side signer
+	// still requires a syntactically valid user seed.
+	return "test-user-jwt", string(seedBytes)
 }
