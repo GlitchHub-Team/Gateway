@@ -5,6 +5,7 @@ import (
 	"time"
 
 	profiles "Gateway/internal/sensor/sensorProfiles"
+	testutils "Gateway/tests/utils"
 
 	"github.com/google/uuid"
 )
@@ -12,7 +13,7 @@ import (
 func TestHeartRateGenerate(t *testing.T) {
 	// Verifica che il profilo converta il valore casuale nel BPM previsto.
 	sensorID := uuid.New()
-	profile := profiles.NewHeartRateProfile(sensorID, &MockRandomGenerator{nInt: 10})
+	profile := profiles.NewHeartRateProfile(sensorID, &testutils.MockRandomGenerator{NInt: 10})
 
 	got := profile.Generate()
 

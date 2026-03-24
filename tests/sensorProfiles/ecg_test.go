@@ -6,6 +6,7 @@ import (
 	"time"
 
 	profiles "Gateway/internal/sensor/sensorProfiles"
+	testutils "Gateway/tests/utils"
 
 	"github.com/google/uuid"
 )
@@ -20,7 +21,7 @@ func TestEcgGenerate(t *testing.T) {
 	}{
 		{
 			name:    "Ecg correct generate data",
-			profile: profiles.NewEcgProfile(sensorId, &MockRandomGenerator{nInt: 100}),
+			profile: profiles.NewEcgProfile(sensorId, &testutils.MockRandomGenerator{NInt: 100}),
 			want: &profiles.GeneratedSensorData{
 				SensorId:  sensorId,
 				Timestamp: time.Time{},

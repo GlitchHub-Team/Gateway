@@ -1,51 +1,59 @@
 package buffereddatasender
 
 import (
+	"context"
 	"fmt"
 
 	"Gateway/internal/natsutil"
 
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
 )
 
-type (
-	NatsAddress string
-	NatsPort    int
-	NatsToken   string
-	NatsSeed    string
+var (
+	natsConnect         = nats.Connect
+	newJetStreamContext = natsutil.NewJetStreamContext
 )
 
 type NATSDataPublisherFactory struct {
-	js      nats.JetStreamContext
-	address NatsAddress
-	port    NatsPort
+	nc        *nats.Conn
+	js        jetstream.JetStream
+	caPemPath natsutil.NatsCAPemPath
+	address   natsutil.NatsAddress
+	port      natsutil.NatsPort
+	ctx       context.Context
 }
 
-func NewNATSDataPublisherFactory(js nats.JetStreamContext, address NatsAddress, port NatsPort) *NATSDataPublisherFactory {
+func NewNATSDataPublisherFactory(js jetstream.JetStream, nc *nats.Conn, address natsutil.NatsAddress, port natsutil.NatsPort, ctx context.Context, caPemPath natsutil.NatsCAPemPath) *NATSDataPublisherFactory {
 	return &NATSDataPublisherFactory{
-		js:      js,
-		address: address,
-		port:    port,
+		nc:        nc,
+		js:        js,
+		caPemPath: caPemPath,
+		address:   address,
+		port:      port,
+		ctx:       ctx,
 	}
 }
 
 func (f *NATSDataPublisherFactory) Create() SendSensorDataPort {
-	return NewNATSDataPublisherRepository(f.js)
+	return NewNATSDataPublisherRepository(f.nc, f.js, f.ctx)
 }
 
 func (f *NATSDataPublisherFactory) Reload(token string, seed string) (SendSensorDataPort, error) {
-	opt := natsutil.JWTAuth(token, seed)
+	options := make([]nats.Option, 0, 2)
+	options = append(options, natsutil.JWTAuth(token, seed))
+	options = append(options, natsutil.CAPemAuth(string(f.caPemPath)))
 
 	url := fmt.Sprintf("nats://%s:%d", f.address, f.port)
-	nc, err := nats.Connect(url, opt)
+	nc, err := natsConnect(url, options...)
 	if err != nil {
 		return nil, fmt.Errorf("errore nella connessione a NATS: %w", err)
 	}
 
-	js, err := nc.JetStream()
+	js, err := newJetStreamContext(nc)
 	if err != nil {
-		return nil, fmt.Errorf("errore nell'ottenimento del contesto JetStream: %w", err)
+		return nil, fmt.Errorf("errore nella creazione del contesto JetStream: %w", err)
 	}
 
-	return NewNATSDataPublisherRepository(js), nil
+	return NewNATSDataPublisherRepository(nc, js, f.ctx), nil
 }

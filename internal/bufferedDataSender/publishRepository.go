@@ -1,21 +1,27 @@
 package buffereddatasender
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
 )
 
 type NATSDataPublisherRepository struct {
-	js nats.JetStreamContext
+	nc  *nats.Conn
+	js  jetstream.JetStream
+	ctx context.Context
 }
 
-func NewNATSDataPublisherRepository(js nats.JetStreamContext) *NATSDataPublisherRepository {
+func NewNATSDataPublisherRepository(nc *nats.Conn, js jetstream.JetStream, ctx context.Context) *NATSDataPublisherRepository {
 	return &NATSDataPublisherRepository{
-		js: js,
+		nc:  nc,
+		js:  js,
+		ctx: ctx,
 	}
 }
 
@@ -34,7 +40,7 @@ type HelloMessageDTO struct {
 }
 
 func (r *NATSDataPublisherRepository) Send(d *sensorData, tenantId uuid.UUID) error {
-	subject := fmt.Sprintf("sensor.%s.%s", d.GatewayId, d.SensorId)
+	subject := fmt.Sprintf("sensor.%s.%s.%s", tenantId, d.GatewayId, d.SensorId)
 
 	dto := SensorDataDTO{
 		SensorId:  d.SensorId,
@@ -50,7 +56,7 @@ func (r *NATSDataPublisherRepository) Send(d *sensorData, tenantId uuid.UUID) er
 		return fmt.Errorf("errore nel marshaling del dato in JSON: %w, gatewayId: %s, sensorId: %s, timestamp: %s", err, d.GatewayId.String(), d.SensorId.String(), d.Timestamp.String())
 	}
 
-	_, err = r.js.Publish(subject, marshaledSensorData)
+	err = r.nc.Publish(subject, marshaledSensorData)
 	if err != nil {
 		return err
 	}
@@ -71,7 +77,7 @@ func (r *NATSDataPublisherRepository) Hello(gatewayId uuid.UUID, publicIdentifie
 		return fmt.Errorf("errore nel marshaling del messaggio di hello: %w, gatewayId: %s", err, gatewayId.String())
 	}
 
-	_, err = r.js.Publish(subject, marshaledHelloMessage)
+	_, err = r.js.Publish(r.ctx, subject, marshaledHelloMessage)
 	if err != nil {
 		return fmt.Errorf("errore nell'invio del messaggio di hello: %w, gatewayId: %s", err, gatewayId.String())
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 func TestStopSensorCmdExecute(t *testing.T) {
-	//verifica che StopSensorCmd fermi il sensore
+	// verifica che StopSensorCmd fermi il sensore
 	stopper := &mockSensorStopper{}
 	cmd := commands.NewStopSensorCmd(stopper)
 

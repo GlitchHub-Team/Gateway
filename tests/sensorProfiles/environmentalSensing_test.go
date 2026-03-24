@@ -5,14 +5,15 @@ import (
 	"time"
 
 	profiles "Gateway/internal/sensor/sensorProfiles"
+	testutils "Gateway/tests/utils"
 
 	"github.com/google/uuid"
 )
 
 func TestEnvironmentalSensingGenerate(t *testing.T) {
-	//verifica che il profilo generi il payload atteso e conservi i metadati del sensore
+	// verifica che il profilo generi il payload atteso e conservi i metadati del sensore
 	sensorID := uuid.New()
-	profile := profiles.NewEnvironmentalSensingProfile(sensorID, &MockRandomGenerator{nFloat: 0.5})
+	profile := profiles.NewEnvironmentalSensingProfile(sensorID, &testutils.MockRandomGenerator{NFloat: 0.5})
 
 	got := profile.Generate()
 

@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateGatewayCmdExecute(t *testing.T) {
-	//verifica che CreateGatewayCmd crei il gateway, saluti e avvii il sender
+	// verifica che CreateGatewayCmd crei il gateway, saluti e avvii il sender
 	cmdData := &commanddata.CreateGateway{GatewayId: uuid.New(), Interval: time.Second}
 	credentials := &credentialsgenerator.Credentials{
 		PublicIdentifier: "public",
@@ -58,7 +58,7 @@ func TestCreateGatewayCmdExecute(t *testing.T) {
 }
 
 func TestCreateGatewayCmdExecuteReturnsCreateError(t *testing.T) {
-	//verifica che CreateGatewayCmd non saluti ne avvii il sender se la create fallisce
+	// verifica che CreateGatewayCmd non saluti ne avvii il sender se la create fallisce
 	expectedErr := errors.New("create failed")
 	creator := &mockGatewayCreator{err: expectedErr}
 	greeter := &mockGatewayGreeter{}
@@ -83,7 +83,7 @@ func TestCreateGatewayCmdExecuteReturnsCreateError(t *testing.T) {
 }
 
 func TestCreateGatewayCmdExecuteReturnsHelloError(t *testing.T) {
-	//verifica che CreateGatewayCmd non avvii il sender se Hello fallisce
+	// verifica che CreateGatewayCmd non avvii il sender se Hello fallisce
 	expectedErr := errors.New("hello failed")
 	creator := &mockGatewayCreator{}
 	greeter := &mockGatewayGreeter{err: expectedErr}

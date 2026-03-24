@@ -18,13 +18,13 @@ import (
 
 type stubRand struct{}
 
-func (s *stubRand) Intn(_ int) int { return 0 }
+func (s *stubRand) Intn(_ int) int   { return 0 }
 func (s *stubRand) Float64() float64 { return 0 }
 
 func newRepository(t *testing.T) (*configrepositories.SQLiteConfigRepository, *configrepositories.ConfigDbConnection) {
 	t.Helper()
 
-	conn, err := gatewaydatabase.NewGatewayDatabase(context.Background())
+	conn, err := gatewaydatabase.NewMockGatewayDatabase(context.Background())
 	if err != nil {
 		t.Fatalf("expected gateway db to open, got %v", err)
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 func TestCommissionGatewayCmdExecute(t *testing.T) {
-	//verifica che CommissionGatewayCmd salvi il commissioning e poi commissioni il sender
+	// verifica che CommissionGatewayCmd salvi il commissioning e poi commissioni il sender
 	cmdData := &commanddata.CommissionGateway{
 		GatewayId:         uuid.New(),
 		TenantId:          uuid.New(),
@@ -57,7 +57,7 @@ func TestCommissionGatewayCmdExecute(t *testing.T) {
 }
 
 func TestCommissionGatewayCmdExecuteReturnsCommissioningError(t *testing.T) {
-	//verifica che CommissionGatewayCmd non commissioni il sender se il port fallisce
+	// verifica che CommissionGatewayCmd propaghi l'errore del port dopo aver commissionato il sender
 	expectedErr := errors.New("commission failed")
 	port := &mockGatewayCommissionerPort{err: expectedErr}
 	commissioner := &mockGatewayCommissioner{}
@@ -69,13 +69,13 @@ func TestCommissionGatewayCmdExecuteReturnsCommissioningError(t *testing.T) {
 		t.Fatalf("expected error %v, got %v", expectedErr, err)
 	}
 
-	if commissioner.commissionCalls != 0 {
-		t.Fatalf("expected Commission not to be called, got %d", commissioner.commissionCalls)
+	if commissioner.commissionCalls != 1 {
+		t.Fatalf("expected Commission to be called once before port error, got %d", commissioner.commissionCalls)
 	}
 }
 
 func TestCommissionGatewayCmdExecuteReturnsSenderError(t *testing.T) {
-	//verifica che CommissionGatewayCmd propaghi l'errore del sender
+	// verifica che CommissionGatewayCmd propaghi l'errore del sender
 	expectedErr := errors.New("sender commission failed")
 	port := &mockGatewayCommissionerPort{}
 	commissioner := &mockGatewayCommissioner{err: expectedErr}

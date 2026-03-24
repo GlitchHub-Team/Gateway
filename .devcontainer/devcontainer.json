@@ -1,9 +1,22 @@
 {
     "name": "Go 1.26 Gateway Development",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "context": "."
-    },
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "gateway",
+    "runServices": [
+        "gateway",
+        "timescale",
+        "nats",
+        "nats-manager"
+    ],
+    "shutdownAction": "stopCompose",
+    "remoteUser": "vscode",
+    "workspaceFolder": "/workspaces",
+    "forwardPorts": [
+        4222,
+        8222,
+        5432
+    ],
+    "postCreateCommand": "bash .devcontainer/init.sh",
     "customizations": {
         "vscode": {
             "settings": {
@@ -29,12 +42,5 @@
                 "golang.go"
             ]
         }
-    },
-    "remoteUser": "vscode",
-    "postCreateCommand": "go mod download",
-    "forwardPorts": [
-        8080,
-        8222,
-        4222
-    ]
+    }
 }
