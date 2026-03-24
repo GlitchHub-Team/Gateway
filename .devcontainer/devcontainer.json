@@ -4,6 +4,8 @@
     "service": "gateway",
     "runServices": [
         "gateway",
+        "cloud-db",
+        "adminer",
         "timescale",
         "nats",
         "nats-manager"
@@ -11,11 +13,6 @@
     "shutdownAction": "stopCompose",
     "remoteUser": "vscode",
     "workspaceFolder": "/workspaces",
-    "forwardPorts": [
-        4222,
-        8222,
-        5432
-    ],
     "postCreateCommand": "bash .devcontainer/init.sh",
     "customizations": {
         "vscode": {
