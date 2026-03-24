@@ -15,12 +15,15 @@ func TestGenerateCredentialsReturnsConsistentKeyPair(t *testing.T) {
 	}
 	if creds == nil {
 		t.Fatal("expected non nil credentials")
+		return
 	}
 	if creds.PublicIdentifier == "" {
 		t.Fatal("expected public identifier to be populated")
+		return
 	}
 	if creds.SecretKey == "" {
 		t.Fatal("expected secret key to be populated")
+		return
 	}
 
 	kp, err := nkeys.FromSeed([]byte(creds.SecretKey))
