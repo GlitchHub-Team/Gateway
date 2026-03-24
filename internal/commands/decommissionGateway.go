@@ -16,11 +16,11 @@ type DecommissionGatewayCmd struct {
 }
 
 func (c *DecommissionGatewayCmd) Execute() error {
-	if err := c.configService.DecommissionGateway(c.cmdData, c.status); err != nil {
+	if err := c.decommissioner.Decommission(); err != nil {
 		return err
 	}
 
-	if err := c.decommissioner.Decommission(); err != nil {
+	if err := c.configService.DecommissionGateway(c.cmdData, c.status); err != nil {
 		return err
 	}
 

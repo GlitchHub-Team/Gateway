@@ -12,7 +12,7 @@ import (
 )
 
 func TestResetGatewayCmdExecute(t *testing.T) {
-	//verifica che ResetGatewayCmd passi l'intervallo di default al port e al sender
+	// verifica che ResetGatewayCmd passi l'intervallo di default al port e al sender
 	cmdData := &commanddata.ResetGateway{GatewayId: uuid.New()}
 	port := &mockGatewayResetterPort{}
 	resetter := &mockGatewayResetter{}
@@ -49,7 +49,7 @@ func TestResetGatewayCmdExecute(t *testing.T) {
 }
 
 func TestResetGatewayCmdExecuteReturnsPortError(t *testing.T) {
-	//verifica che ResetGatewayCmd non chiami il sender se il port fallisce
+	// verifica che ResetGatewayCmd non chiami il sender se il port fallisce
 	expectedErr := errors.New("reset failed")
 	port := &mockGatewayResetterPort{err: expectedErr}
 	resetter := &mockGatewayResetter{}
@@ -67,7 +67,7 @@ func TestResetGatewayCmdExecuteReturnsPortError(t *testing.T) {
 }
 
 func TestResetGatewayCmdExecuteReturnsSenderError(t *testing.T) {
-	//verifica che ResetGatewayCmd propaghi l'errore del sender
+	// verifica che ResetGatewayCmd propaghi l'errore del sender
 	expectedErr := errors.New("sender reset failed")
 	port := &mockGatewayResetterPort{}
 	resetter := &mockGatewayResetter{err: expectedErr}

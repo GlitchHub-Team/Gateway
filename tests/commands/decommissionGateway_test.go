@@ -12,7 +12,7 @@ import (
 )
 
 func TestDecommissionGatewayCmdExecute(t *testing.T) {
-	//verifica che DecommissionGatewayCmd salvi il decommissioning, decommissioni e saluti
+	// verifica che DecommissionGatewayCmd salvi il decommissioning, decommissioni e saluti
 	cmdData := &commanddata.DecommissionGateway{GatewayId: uuid.New()}
 	port := &mockGatewayDecommissionerPort{}
 	decommissioner := &mockGatewayDecommissioner{}
@@ -50,7 +50,7 @@ func TestDecommissionGatewayCmdExecute(t *testing.T) {
 }
 
 func TestDecommissionGatewayCmdExecuteReturnsDecommissioningError(t *testing.T) {
-	//verifica che DecommissionGatewayCmd non chiami sender o greeter se il port fallisce
+	// verifica che DecommissionGatewayCmd propaghi l'errore del port dopo il decommission del sender e senza hello
 	expectedErr := errors.New("decommission failed")
 	port := &mockGatewayDecommissionerPort{err: expectedErr}
 	decommissioner := &mockGatewayDecommissioner{}
@@ -63,8 +63,8 @@ func TestDecommissionGatewayCmdExecuteReturnsDecommissioningError(t *testing.T) 
 		t.Fatalf("expected error %v, got %v", expectedErr, err)
 	}
 
-	if decommissioner.decommissionCalls != 0 {
-		t.Fatalf("expected Decommission not to be called, got %d", decommissioner.decommissionCalls)
+	if decommissioner.decommissionCalls != 1 {
+		t.Fatalf("expected Decommission to be called once before port error, got %d", decommissioner.decommissionCalls)
 	}
 
 	if greeter.helloCalls != 0 {
@@ -73,7 +73,7 @@ func TestDecommissionGatewayCmdExecuteReturnsDecommissioningError(t *testing.T) 
 }
 
 func TestDecommissionGatewayCmdExecuteReturnsSenderError(t *testing.T) {
-	//verifica che DecommissionGatewayCmd non saluti se il sender fallisce
+	// verifica che DecommissionGatewayCmd non saluti se il sender fallisce
 	expectedErr := errors.New("sender decommission failed")
 	port := &mockGatewayDecommissionerPort{}
 	decommissioner := &mockGatewayDecommissioner{err: expectedErr}
@@ -92,7 +92,7 @@ func TestDecommissionGatewayCmdExecuteReturnsSenderError(t *testing.T) {
 }
 
 func TestDecommissionGatewayCmdExecuteReturnsHelloError(t *testing.T) {
-	//verifica che DecommissionGatewayCmd propaghi l'errore di Hello
+	// verifica che DecommissionGatewayCmd propaghi l'errore di Hello
 	expectedErr := errors.New("hello failed")
 	port := &mockGatewayDecommissionerPort{}
 	decommissioner := &mockGatewayDecommissioner{}

@@ -6,6 +6,7 @@ import (
 
 	configmanager "Gateway/internal/configManager"
 	"Gateway/internal/domain"
+	"Gateway/internal/sensor"
 
 	"github.com/google/uuid"
 )
@@ -30,9 +31,13 @@ func (r *SQLiteConfigRepository) GetGatewayById(gatewayId uuid.UUID) (*configman
 		return nil, fmt.Errorf("fallito a recuperare il gateway %s: %w", gatewayId, err)
 	}
 
-	sensors, err := r.loadSensors(gatewayId)
+	sensorsByGateway, err := r.loadSensors([]uuid.UUID{gatewayId})
 	if err != nil {
 		return nil, fmt.Errorf("fallito a recuperare i sensori del gateway %s: %w", gatewayId, err)
+	}
+	sensors := sensorsByGateway[gatewayId]
+	if sensors == nil {
+		sensors = make(map[uuid.UUID]*sensor.Sensor)
 	}
 
 	gateway := &configmanager.Gateway{

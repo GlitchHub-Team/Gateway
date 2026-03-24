@@ -12,7 +12,7 @@ import (
 )
 
 func TestInterruptSensorCmdExecute(t *testing.T) {
-	//verifica che InterruptSensorCmd aggiorni lo stato e interrompa il sensore
+	// verifica che InterruptSensorCmd aggiorni lo stato e interrompa il sensore
 	cmdData := &commanddata.InterruptSensor{GatewayId: uuid.New(), SensorId: uuid.New()}
 	port := &mockSensorInterrupterPort{}
 	interrupter := &mockSensorInterrupter{}
@@ -45,7 +45,7 @@ func TestInterruptSensorCmdExecute(t *testing.T) {
 }
 
 func TestInterruptSensorCmdExecuteReturnsInterruptError(t *testing.T) {
-	//verifica che InterruptSensorCmd non interrompa il sensore se il port fallisce
+	// verifica che InterruptSensorCmd non interrompa il sensore se il port fallisce
 	expectedErr := errors.New("interrupt failed")
 	port := &mockSensorInterrupterPort{err: expectedErr}
 	interrupter := &mockSensorInterrupter{}

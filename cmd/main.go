@@ -5,18 +5,18 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/nats-io/nats.go"
-	"go.uber.org/fx"
-	"go.uber.org/zap"
-
 	bufferdatabase "Gateway/cmd/external/bufferDatabase"
 	gatewaydatabase "Gateway/cmd/external/gatewayDatabase"
 	"Gateway/cmd/logger"
-	modules "Gateway/cmd/modules"
+	"Gateway/cmd/modules"
 	commandcontrollers "Gateway/internal/gatewayManager/commandControllers"
 	gatewayservices "Gateway/internal/gatewayManager/gatewayServices"
 	"Gateway/internal/natsutil"
 	sensorprofiles "Gateway/internal/sensor/sensorProfiles"
+
+	"github.com/nats-io/nats.go"
+	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 func envInt(key string, fallback int) int {

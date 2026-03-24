@@ -237,7 +237,7 @@ func TestBufferedDataSenderStartTickerSendsDataAndCleansBuffer(t *testing.T) {
 	nc := newMockNATSConnection(t)
 	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, context.Background())
 
-	subject := fmt.Sprintf("sensor.%s.%s", gateway.Id, sensorID)
+	subject := fmt.Sprintf("sensor.%s.%s.%s", gateway.TenantId.String(), gateway.Id, sensorID)
 	sub, err := nc.SubscribeSync(subject)
 	if err != nil {
 		t.Fatalf("unable to subscribe on sensor subject: %v", err)
@@ -337,8 +337,8 @@ func TestBufferedDataSenderStartKeepsUnsentDataInBuffer(t *testing.T) {
 	nc := newMockNATSConnection(t)
 	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, context.Background())
 
-	firstSubject := fmt.Sprintf("sensor.%s.%s", gateway.Id, firstSensorID)
-	secondSubject := fmt.Sprintf("sensor.%s.%s", gateway.Id, secondSensorID)
+	firstSubject := fmt.Sprintf("sensor.%s.%s.%s", gateway.TenantId.String(), gateway.Id, firstSensorID)
+	secondSubject := fmt.Sprintf("sensor.%s.%s.%s", gateway.TenantId.String(), gateway.Id, secondSensorID)
 	firstSub, err := nc.SubscribeSync(firstSubject)
 	if err != nil {
 		t.Fatalf("unable to subscribe on first subject: %v", err)

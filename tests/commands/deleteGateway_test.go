@@ -11,7 +11,7 @@ import (
 )
 
 func TestDeleteGatewayCmdExecute(t *testing.T) {
-	//verifica che DeleteGatewayCmd elimini il gateway e poi fermi il sender
+	// verifica che DeleteGatewayCmd elimini il gateway e poi fermi il sender
 	cmdData := &commanddata.DeleteGateway{GatewayId: uuid.New()}
 	deleter := &mockGatewayDeleter{}
 	stopper := &mockGatewayStopper{}
@@ -40,7 +40,7 @@ func TestDeleteGatewayCmdExecute(t *testing.T) {
 }
 
 func TestDeleteGatewayCmdExecuteReturnsDeleteError(t *testing.T) {
-	//verifica che DeleteGatewayCmd non fermi il sender se la delete fallisce
+	// verifica che DeleteGatewayCmd non fermi il sender se la delete fallisce
 	expectedErr := errors.New("delete failed")
 	deleter := &mockGatewayDeleter{err: expectedErr}
 	stopper := &mockGatewayStopper{}

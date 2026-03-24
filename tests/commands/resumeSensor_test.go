@@ -12,7 +12,7 @@ import (
 )
 
 func TestResumeSensorCmdExecute(t *testing.T) {
-	//verifica che ResumeSensorCmd aggiorni lo stato e riprenda il sensore
+	// verifica che ResumeSensorCmd aggiorni lo stato e riprenda il sensore
 	cmdData := &commanddata.ResumeSensor{GatewayId: uuid.New(), SensorId: uuid.New()}
 	port := &mockSensorResumerPort{}
 	resumer := &mockSensorResumer{}
@@ -45,7 +45,7 @@ func TestResumeSensorCmdExecute(t *testing.T) {
 }
 
 func TestResumeSensorCmdExecuteReturnsResumeError(t *testing.T) {
-	//verifica che ResumeSensorCmd non riprenda il sensore se il port fallisce
+	// verifica che ResumeSensorCmd non riprenda il sensore se il port fallisce
 	expectedErr := errors.New("resume failed")
 	port := &mockSensorResumerPort{err: expectedErr}
 	resumer := &mockSensorResumer{}

@@ -102,7 +102,7 @@ func TestGetAllGatewaysReturnsErrorWhenSensorProfileIsInvalid(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 
-	if !strings.Contains(err.Error(), "fallito a recuperare i sensori del gateway") {
+	if !strings.Contains(err.Error(), "fallito a recuperare i sensori dei gateway") {
 		t.Fatalf("expected sensor loading context, got %q", err.Error())
 	}
 }
