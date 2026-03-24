@@ -109,7 +109,7 @@ func (m *mockSerializableData) Serialize() ([]byte, error) {
 }
 
 func TestStop(t *testing.T) {
-	//verifica che stop porti il sensore nello stato stopped
+	// verifica che stop porti il sensore nello stato stopped
 	sensorEntity := &sensor.Sensor{Status: sensor.Active}
 
 	service := sensor.NewSensorService(
@@ -129,7 +129,7 @@ func TestStop(t *testing.T) {
 }
 
 func TestInterrupt(t *testing.T) {
-	//verifica che Interrupt imposti lo stato Inactive 
+	// verifica che Interrupt imposti lo stato Inactive
 	sensorEntity := &sensor.Sensor{Status: sensor.Active}
 
 	service := sensor.NewSensorService(
@@ -149,7 +149,7 @@ func TestInterrupt(t *testing.T) {
 }
 
 func TestResume(t *testing.T) {
-	//verifica che Resume rimetta il sensore in stato Active 
+	// verifica che Resume rimetta il sensore in stato Active
 	sensorEntity := &sensor.Sensor{Status: sensor.Inactive}
 
 	service := sensor.NewSensorService(
@@ -169,7 +169,7 @@ func TestResume(t *testing.T) {
 }
 
 func TestStartExecutesCommandAndForwardsError(t *testing.T) {
-	//verifica che Start esegua il comando e inoltri l'errore su errchannel
+	// verifica che Start esegua il comando e inoltri l'errore su errchannel
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -211,7 +211,7 @@ func TestStartExecutesCommandAndForwardsError(t *testing.T) {
 }
 
 func TestStartGeneratesDataOnTick(t *testing.T) {
-	//verifica che il ticker attivi il salvataggio quando il sensore e' active 
+	// verifica che il ticker attivi il salvataggio quando il sensore e' active
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -256,7 +256,7 @@ func TestStartGeneratesDataOnTick(t *testing.T) {
 }
 
 func TestStartSkipsGenerationWhenInactive(t *testing.T) {
-	//erifica che il ticker non salvi dati quando il sensore e' inattivo
+	// erifica che il ticker non salvi dati quando il sensore e' inattivo
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -291,7 +291,7 @@ func TestStartSkipsGenerationWhenInactive(t *testing.T) {
 }
 
 func TestStartStopsOnContextDone(t *testing.T) {
-	//verifica che il servizio termini quando il context viene cancellato
+	// verifica che il servizio termini quando il context viene cancellato
 	ctx, cancel := context.WithCancel(context.Background())
 	serviceDone := make(chan struct{})
 
@@ -333,7 +333,7 @@ func newGeneratedSensorData() *profiles.GeneratedSensorData {
 }
 
 func waitForSignal(t *testing.T, ch <-chan struct{}, label string) {
-	//evita che i test concorrenti restino bloccati in attesa di un evento 
+	// evita che i test concorrenti restino bloccati in attesa di un evento
 	t.Helper()
 
 	select {

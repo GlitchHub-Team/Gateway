@@ -16,7 +16,7 @@ func (s *GatewayManagerService) RebootGateway(cmdData *commanddata.RebootGateway
 		return Response{Success: false, Message: fmt.Sprintf("nessun gateway trovato per il riavvio, id %s", cmdData.GatewayId)}
 	}
 
-	cmd := commands.NewRebootGatewayCmd(worker.Sender, worker.Sender, worker.Sender)
+	cmd := commands.NewRebootGatewayCmd(worker.Sender)
 	worker.CmdChannel <- cmd
 
 	if err := <-worker.ErrChannel; err != nil {

@@ -76,7 +76,7 @@ func TestPublishRepositorySendValidDataPublishesExpectedPayload(t *testing.T) {
 	tenantID := uuid.New()
 	ts := time.Now()
 
-	subject := "sensor." + gatewayID.String() + "." + sensorID.String()
+	subject := "sensor." + tenantID.String() + "." + gatewayID.String() + "." + sensorID.String()
 	sub, err := nc.SubscribeSync(subject)
 	if err != nil {
 		t.Fatalf("unable to subscribe to test subject: %v", err)
@@ -150,7 +150,7 @@ func TestPublishRepositorySendLogicalInvalidDataStillPublishes(t *testing.T) {
 	tenantID := uuid.Nil
 	ts := time.Time{}
 
-	subject := "sensor." + gatewayID.String() + "." + sensorID.String()
+	subject := "sensor." + tenantID.String() + "." + gatewayID.String() + "." + sensorID.String()
 	sub, err := nc.SubscribeSync(subject)
 	if err != nil {
 		t.Fatalf("unable to subscribe to test subject: %v", err)

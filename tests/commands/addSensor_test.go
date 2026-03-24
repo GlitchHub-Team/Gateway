@@ -13,7 +13,7 @@ import (
 )
 
 func TestAddSensorCmdExecute(t *testing.T) {
-	//verifica che AddSensorCmd salvi il sensore e avvii lo starter
+	// verifica che AddSensorCmd salvi il sensore e avvii lo starter
 	cmdData := &commanddata.AddSensor{
 		GatewayId: uuid.New(),
 		SensorId:  uuid.New(),
@@ -48,7 +48,7 @@ func TestAddSensorCmdExecute(t *testing.T) {
 }
 
 func TestAddSensorCmdExecuteReturnsAdderError(t *testing.T) {
-	//verifica che AddSensorCmd propaghi l'errore del port di add
+	// verifica che AddSensorCmd propaghi l'errore del port di add
 	expectedErr := errors.New("add failed")
 	adder := &mockSensorAdder{err: expectedErr}
 	starter := &mockSensorStarter{started: make(chan struct{}, 1)}

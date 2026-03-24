@@ -19,3 +19,21 @@ Seguire i seguenti passaggi per leggere la code coverage:
 1. `chmod +x testCoverage.sh`
 2. `./testCoverage.sh`
 3. Aprire il file `coverage.html` con un browser per visualizzare la code coverage in modo interattivo.
+
+# Come creare Tenant - nsc edition
+1. `nsc add account <tenant-name>`, convenzione "tenant-<tenant-id>"
+2. `nsc add import --account <tenant-name> \
+  --src-account <application-core-account-id> \
+  --remote-subject "sensor.<tenant-id>.>" \
+  --name "sensor_service_import" \
+  --service
+`
+3. `nsc push -u nats://localhost:4222 --ca-cert ca.pem`, ovviamente la ca.pem deve essere nella cartella di esecuzione del comando,                                       
+
+# Come creare Gateway - nsc edition
+1. `nsc add user -a <tenant-name> -n <gateway-name> 
+        --allow-pub "sensor.<tenant-id>.<gateway-id>.>"
+        --allow-sub "\$JS.API.>,_INBOX.>"
+        --public-key <gateway-public-key>`, 
+    convenzione "gateway-<gateway-id>"
+2. `nsc describe user -a <tenant-name> -n <gateway-name> -R`, per recuperare il JWT del gateway

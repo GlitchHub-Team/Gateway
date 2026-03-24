@@ -2,6 +2,7 @@ package buffereddatasender
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	configmanager "Gateway/internal/configManager"
@@ -110,6 +111,10 @@ func (b *BufferedDataSenderService) Hello() error {
 }
 
 func (b *BufferedDataSenderService) Decommission() error {
+	if b.gateway.Status == domain.Decommissioned {
+		return fmt.Errorf("gateway gia decommissionato: %s", b.gateway.Id.String())
+	}
+
 	if err := b.bufferedDataPort.CleanWholeBuffer(b.gateway.Id); err != nil {
 		return err
 	}
@@ -122,6 +127,10 @@ func (b *BufferedDataSenderService) Decommission() error {
 }
 
 func (b *BufferedDataSenderService) Commission(tenantId uuid.UUID, commissionedToken string) error {
+	if b.gateway.Status == domain.Active && b.gateway.Token != nil {
+		return fmt.Errorf("gateway gia commissionato: %s", b.gateway.Id.String())
+	}
+
 	sendDataPort, err := b.sendSensorDataPortFactory.Reload(commissionedToken, b.gateway.SecretKey)
 	if err != nil {
 		return err

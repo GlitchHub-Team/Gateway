@@ -11,7 +11,7 @@ import (
 )
 
 func TestDeleteSensorCmdExecute(t *testing.T) {
-	//verifica che DeleteSensorCmd elimini il sensore e poi lo fermi
+	// verifica che DeleteSensorCmd elimini il sensore e poi lo fermi
 	cmdData := &commanddata.DeleteSensor{GatewayId: uuid.New(), SensorId: uuid.New()}
 	deleter := &mockSensorDeleter{}
 	stopper := &mockSensorStopper{}
@@ -40,7 +40,7 @@ func TestDeleteSensorCmdExecute(t *testing.T) {
 }
 
 func TestDeleteSensorCmdExecuteReturnsDeleteError(t *testing.T) {
-	//verifica che DeleteSensorCmd non fermi il sensore se la delete fallisce
+	// verifica che DeleteSensorCmd non fermi il sensore se la delete fallisce
 	expectedErr := errors.New("delete failed")
 	deleter := &mockSensorDeleter{err: expectedErr}
 	stopper := &mockSensorStopper{}

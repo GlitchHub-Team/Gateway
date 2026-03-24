@@ -15,11 +15,11 @@ type CommissionGatewayCmd struct {
 }
 
 func (c *CommissionGatewayCmd) Execute() error {
-	if err := c.configService.CommissionGateway(c.cmdData, c.status); err != nil {
+	if err := c.commissioner.Commission(c.cmdData.TenantId, c.cmdData.CommissionedToken); err != nil {
 		return err
 	}
 
-	if err := c.commissioner.Commission(c.cmdData.TenantId, c.cmdData.CommissionedToken); err != nil {
+	if err := c.configService.CommissionGateway(c.cmdData, c.status); err != nil {
 		return err
 	}
 

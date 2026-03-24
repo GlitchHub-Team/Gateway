@@ -12,7 +12,7 @@ import (
 )
 
 func TestInterruptGatewayCmdExecute(t *testing.T) {
-	//verifica che InterruptGatewayCmd aggiorni lo stato e interrompa il sender
+	// verifica che InterruptGatewayCmd aggiorni lo stato e interrompa il sender
 	cmdData := &commanddata.InterruptGateway{GatewayId: uuid.New()}
 	port := &mockGatewayInterrupterPort{}
 	interrupter := &mockGatewayInterrupter{}
@@ -45,7 +45,7 @@ func TestInterruptGatewayCmdExecute(t *testing.T) {
 }
 
 func TestInterruptGatewayCmdExecuteReturnsInterruptError(t *testing.T) {
-	//verifica che InterruptGatewayCmd non interrompa il sender se il port fallisce
+	// verifica che InterruptGatewayCmd non interrompa il sender se il port fallisce
 	expectedErr := errors.New("interrupt failed")
 	port := &mockGatewayInterrupterPort{err: expectedErr}
 	interrupter := &mockGatewayInterrupter{}

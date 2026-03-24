@@ -12,7 +12,7 @@ import (
 )
 
 func TestResumeGatewayCmdExecute(t *testing.T) {
-	//verifica che ResumeGatewayCmd aggiorni lo stato e riprenda il sender
+	// verifica che ResumeGatewayCmd aggiorni lo stato e riprenda il sender
 	cmdData := &commanddata.ResumeGateway{GatewayId: uuid.New()}
 	port := &mockGatewayResumerPort{}
 	resumer := &mockGatewayResumer{}
@@ -45,7 +45,7 @@ func TestResumeGatewayCmdExecute(t *testing.T) {
 }
 
 func TestResumeGatewayCmdExecuteReturnsResumeError(t *testing.T) {
-	//verifica che ResumeGatewayCmd non riprenda il sender se il port fallisce
+	// verifica che ResumeGatewayCmd non riprenda il sender se il port fallisce
 	expectedErr := errors.New("resume failed")
 	port := &mockGatewayResumerPort{err: expectedErr}
 	resumer := &mockGatewayResumer{}
