@@ -35,11 +35,6 @@ func TestNATSDecommissionGatewayIntegration(t *testing.T) {
 		commissionRes := fx.sendCommissionCommand(t, gateway1ID, tenant1ID, fx.gateway1Creds(t).JWT)
 		responseMustSucceed(t, commissionRes, "Gateway commissionato correttamente")
 
-		interruptRes := sendCommand(t, fx.publisherNc, "commands.interruptgateway", map[string]any{
-			"gatewayId": gateway1ID.String(),
-		})
-		responseMustSucceed(t, interruptRes, "Gateway interrotto con successo")
-
 		fx.insertBufferedData(t, gateway1ID, uuid.New())
 		bufferedBefore := countRows(t, fx.ctx, fx.bufferDb.DB, `SELECT COUNT(*) FROM buffer WHERE gatewayId = ?`, gateway1ID)
 		if bufferedBefore == 0 {

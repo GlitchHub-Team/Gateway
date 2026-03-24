@@ -61,11 +61,11 @@ func TestNATSCommissionGatewayIntegration(t *testing.T) {
 		fx := newCommissionFixture(t, commissionFixtureOptions{})
 		defer fx.close(t)
 
-		creds := fx.adminCreds(t)
+		creds := fx.gateway1Creds(t)
 		sensorID := uuid.New()
-		fx.insertBufferedData(t, adminGatewayID, sensorID)
+		fx.insertBufferedData(t, gateway1ID, sensorID)
 
-		subject := sensorSubject(adminTenantID, adminGatewayID, sensorID)
+		subject := sensorSubject(tenant1ID, gateway1ID, sensorID)
 		sub, err := fx.observerNc.SubscribeSync(subject)
 		if err != nil {
 			t.Fatalf("cannot subscribe to sensor subject: %v", err)
@@ -74,7 +74,7 @@ func TestNATSCommissionGatewayIntegration(t *testing.T) {
 			t.Fatalf("cannot flush observer subscription: %v", err)
 		}
 
-		res := fx.sendCommissionCommand(t, adminGatewayID, adminTenantID, creds.JWT)
+		res := fx.sendCommissionCommand(t, gateway1ID, tenant1ID, creds.JWT)
 		if !res.Success {
 			t.Fatalf("expected success response, got %+v", res)
 		}
@@ -82,7 +82,7 @@ func TestNATSCommissionGatewayIntegration(t *testing.T) {
 			t.Fatalf("unexpected success message: %q", res.Message)
 		}
 
-		fx.assertCommissionedState(t, adminGatewayID, adminTenantID, creds.JWT)
+		fx.assertCommissionedState(t, gateway1ID, tenant1ID, creds.JWT)
 
 		_, err = sub.NextMsg(3 * time.Second)
 		if err != nil {
