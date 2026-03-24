@@ -1,2 +1,3 @@
 go test -v -coverpkg=./... -coverprofile=coverage.out ./tests/...
 go tool cover -html=coverage.out -o coverage.html
+go tool cover -func=coverage.out | tail -n 1 
