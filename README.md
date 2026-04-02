@@ -28,7 +28,8 @@ Seguire i seguenti passaggi per leggere la code coverage:
   --name "sensor_service_import" \
   --service
 `
-3. `nsc push -u nats://localhost:4222 --ca-cert ca.pem`, ovviamente la ca.pem deve essere nella cartella di esecuzione del comando,                                       
+1. `nsc describe account <tenant-name>`, per controllare l'account creato
+2. `nsc push -u nats://localhost:4222 --ca-cert ca.pem`, ovviamente la ca.pem deve essere nella cartella di esecuzione del comando                               
 
 # Come creare Gateway - nsc edition
 1. `nsc add user -a <tenant-name> -n <gateway-name> 
