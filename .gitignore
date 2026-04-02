@@ -1,4 +1,5 @@
 /cmd/natsStorage/*
+/cmd/gateway
 .devcontainer/nats/jetstream-data
 coverage.html
 coverage.out
