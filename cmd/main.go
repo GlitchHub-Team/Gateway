@@ -47,7 +47,7 @@ func main() {
 		fx.Supply(commandcontrollers.ResumeSensorSubject("commands.resumesensor")),
 		fx.Supply(natsutil.NatsAddress(os.Getenv("NATS_HOST"))),
 		fx.Supply(natsutil.NatsPort(envInt("NATS_PORT", 4222))),
-		fx.Supply(natsutil.NatsCredsPath(os.Getenv("BASE_CREDS_PATH"))),
+		fx.Supply(natsutil.NatsCredsPath(os.Getenv("GATEWAY_BASE_CREDS_PATH"))),
 		fx.Supply(natsutil.NatsCAPemPath(os.Getenv("CA_PEM_PATH"))),
 		fx.Provide(natsutil.NewNATSConnection),
 		fx.Provide(natsutil.NewJetStreamContext),
