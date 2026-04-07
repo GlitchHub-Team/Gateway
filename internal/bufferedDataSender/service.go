@@ -159,9 +159,15 @@ func (b *BufferedDataSenderService) Stop() {
 }
 
 func (b *BufferedDataSenderService) Interrupt() {
+	if b.gateway.Status != domain.Active {
+		return
+	}
 	b.gateway.Status = domain.Inactive
 }
 
 func (b *BufferedDataSenderService) Resume() {
+	if b.gateway.Status != domain.Inactive {
+		return
+	}
 	b.gateway.Status = domain.Active
 }

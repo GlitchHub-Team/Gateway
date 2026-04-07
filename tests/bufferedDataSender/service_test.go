@@ -798,3 +798,53 @@ func TestBufferedDataSenderStopInterruptResume(t *testing.T) {
 		t.Fatalf("expected status %q after stop, got %q", domain.Stopped, gateway.Status)
 	}
 }
+
+func TestBufferedDataSenderInterruptIgnoresNonActiveGateway(t *testing.T) {
+	ctx := context.Background()
+	bufferRepo, _ := newMockBufferRepository(t)
+	gateway := newGateway(domain.Inactive, time.Second)
+	nc := newMockNATSConnection(t)
+	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, ctx)
+
+	service := buffereddatasender.NewBufferedDataSenderService(
+		gateway,
+		sendPort,
+		bufferRepo,
+		&mockSendSensorDataPortFactory{},
+		make(chan domain.BaseCommand, 1),
+		make(chan error, 1),
+		ctx,
+		zap.NewNop(),
+	)
+
+	service.Interrupt()
+
+	if gateway.Status != domain.Inactive {
+		t.Fatalf("expected status to remain %q, got %q", domain.Inactive, gateway.Status)
+	}
+}
+
+func TestBufferedDataSenderResumeIgnoresNonInactiveGateway(t *testing.T) {
+	ctx := context.Background()
+	bufferRepo, _ := newMockBufferRepository(t)
+	gateway := newGateway(domain.Active, time.Second)
+	nc := newMockNATSConnection(t)
+	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, ctx)
+
+	service := buffereddatasender.NewBufferedDataSenderService(
+		gateway,
+		sendPort,
+		bufferRepo,
+		&mockSendSensorDataPortFactory{},
+		make(chan domain.BaseCommand, 1),
+		make(chan error, 1),
+		ctx,
+		zap.NewNop(),
+	)
+
+	service.Resume()
+
+	if gateway.Status != domain.Active {
+		t.Fatalf("expected status to remain %q, got %q", domain.Active, gateway.Status)
+	}
+}
