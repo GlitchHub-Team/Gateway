@@ -80,9 +80,15 @@ func (s *SensorService) Stop() {
 }
 
 func (s *SensorService) Interrupt() {
+	if s.sensor.Status != Active {
+		return
+	}
 	s.sensor.Status = Inactive
 }
 
 func (s *SensorService) Resume() {
+	if s.sensor.Status != Inactive {
+		return
+	}
 	s.sensor.Status = Active
 }

@@ -148,6 +148,26 @@ func TestInterrupt(t *testing.T) {
 	}
 }
 
+func TestInterruptDoesNothingWhenNotActive(t *testing.T) {
+	// verifica che Interrupt non cambi stato se il sensore non e' active
+	sensorEntity := &sensor.Sensor{Status: sensor.Inactive}
+
+	service := sensor.NewSensorService(
+		sensorEntity,
+		&mockSaveSensorDataPort{},
+		make(chan domainpkg.BaseCommand, 1),
+		make(chan error, 1),
+		context.Background(),
+		zap.NewNop(),
+	)
+
+	service.Interrupt()
+
+	if sensorEntity.Status != sensor.Inactive {
+		t.Fatalf("expected status to remain %q, got %q", sensor.Inactive, sensorEntity.Status)
+	}
+}
+
 func TestResume(t *testing.T) {
 	// verifica che Resume rimetta il sensore in stato Active
 	sensorEntity := &sensor.Sensor{Status: sensor.Inactive}
@@ -165,6 +185,26 @@ func TestResume(t *testing.T) {
 
 	if sensorEntity.Status != sensor.Active {
 		t.Fatalf("expected status %q, got %q", sensor.Active, sensorEntity.Status)
+	}
+}
+
+func TestResumeDoesNothingWhenNotInactive(t *testing.T) {
+	// verifica che Resume non cambi stato se il sensore non e' inactive
+	sensorEntity := &sensor.Sensor{Status: sensor.Active}
+
+	service := sensor.NewSensorService(
+		sensorEntity,
+		&mockSaveSensorDataPort{},
+		make(chan domainpkg.BaseCommand, 1),
+		make(chan error, 1),
+		context.Background(),
+		zap.NewNop(),
+	)
+
+	service.Resume()
+
+	if sensorEntity.Status != sensor.Active {
+		t.Fatalf("expected status to remain %q, got %q", sensor.Active, sensorEntity.Status)
 	}
 }
 
