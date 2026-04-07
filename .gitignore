@@ -8,3 +8,5 @@ coverage.out
 *.creds
 *.key
 Infrastructure
+cmd/buffer.db-shm
+cmd/buffer.db-wal

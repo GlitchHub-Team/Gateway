@@ -3,6 +3,7 @@ package bufferdatabase
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 
 	sensor "Gateway/internal/sensor"
@@ -10,24 +11,46 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+const (
+	MAX_BUFFER_SIZE = 1000
+)
+
 func createBufferTable(db *sql.DB) error {
-	query := `
-	CREATE TABLE IF NOT EXISTS buffer (
-		gatewayId VARCHAR(255) NOT NULL,
-		sensorId VARCHAR(255) NOT NULL,
-		timestamp DATETIME NOT NULL,
-		profile VARCHAR(255) NOT NULL,
-		value JSONB NOT NULL,
-		PRIMARY KEY (gatewayId, sensorId, timestamp)
-	);
-	`
+	query := fmt.Sprintf(`
+    CREATE TABLE IF NOT EXISTS buffer (
+        gatewayId TEXT NOT NULL,
+        sensorId TEXT NOT NULL,
+        timestamp DATETIME NOT NULL,
+        profile TEXT NOT NULL,
+        value BLOB NOT NULL,
+        PRIMARY KEY (gatewayId, sensorId, timestamp)
+    );
+
+	CREATE INDEX IF NOT EXISTS idx_buffer_cleanup 
+	ON buffer (gatewayId, timestamp DESC);
+
+    CREATE TRIGGER IF NOT EXISTS check_buffer_limit
+    AFTER INSERT ON buffer
+    BEGIN
+        DELETE FROM buffer
+        WHERE gatewayId = NEW.gatewayId
+          AND (sensorId, timestamp) NOT IN (
+              SELECT sensorId, timestamp
+              FROM buffer
+              WHERE gatewayId = NEW.gatewayId
+              ORDER BY timestamp DESC
+              LIMIT %d
+          );
+    END;
+    `, MAX_BUFFER_SIZE)
 
 	_, err := db.ExecContext(context.Background(), query)
 	return err
 }
 
 func NewBufferDatabase() sensor.BufferDbConnection {
-	db, err := sql.Open("sqlite", "file:buffer.db")
+	dsn := "file:buffer.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)"
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		log.Fatalf("Error while opening DB: %v", err)
 	}
