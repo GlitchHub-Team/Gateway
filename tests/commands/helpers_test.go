@@ -105,10 +105,12 @@ func (m *mockSensorResumerPort) ResumeSensor(cmd *commanddata.ResumeSensor, stat
 
 type mockGatewayStopper struct {
 	stopCalls int
+	err      error
 }
 
-func (m *mockGatewayStopper) Stop() {
+func (m *mockGatewayStopper) Stop() error {
 	m.stopCalls++
+	return m.err
 }
 
 type mockGatewayInterrupter struct {

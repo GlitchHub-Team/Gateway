@@ -767,8 +767,10 @@ func TestBufferedDataSenderResetError(t *testing.T) {
 
 func TestBufferedDataSenderStopInterruptResume(t *testing.T) {
 	ctx := context.Background()
-	bufferRepo, _ := newMockBufferRepository(t)
+	bufferRepo, conn := newMockBufferRepository(t)
 	gateway := newGateway(domain.Active, time.Second)
+	sensorID := uuid.New()
+	insertBufferedRow(t, conn, gateway.Id, sensorID, time.Now().UTC(), "HeartRate", `{"BpmValue":72}`)
 	nc := newMockNATSConnection(t)
 	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, ctx)
 
@@ -793,9 +795,52 @@ func TestBufferedDataSenderStopInterruptResume(t *testing.T) {
 		t.Fatalf("expected status %q after resume, got %q", domain.Active, gateway.Status)
 	}
 
-	service.Stop()
+	if err := service.Stop(); err != nil {
+		t.Fatalf("expected stop success, got %v", err)
+	}
 	if gateway.Status != domain.Stopped {
 		t.Fatalf("expected status %q after stop, got %q", domain.Stopped, gateway.Status)
+	}
+
+	rows, err := bufferRepo.GetOrderedBufferedData(gateway.Id)
+	if err != nil {
+		t.Fatalf("failed to read buffer after stop: %v", err)
+	}
+	if len(rows) != 0 {
+		t.Fatalf("expected empty buffer after stop, got %d rows", len(rows))
+	}
+}
+
+func TestBufferedDataSenderStopReturnsErrorWhenBufferCleanFails(t *testing.T) {
+	ctx := context.Background()
+	gateway := newGateway(domain.Active, time.Second)
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open db failed: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	brokenRepo := buffereddatasender.NewBufferedDataRepository(context.Background(), struct{ *sql.DB }{db})
+	nc := newMockNATSConnection(t)
+	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, ctx)
+	service := buffereddatasender.NewBufferedDataSenderService(
+		gateway,
+		sendPort,
+		brokenRepo,
+		&mockSendSensorDataPortFactory{},
+		make(chan domain.BaseCommand, 1),
+		make(chan error, 1),
+		ctx,
+		zap.NewNop(),
+	)
+
+	if err := service.Stop(); err == nil {
+		t.Fatal("expected stop error when clean buffer fails")
+	}
+
+	if gateway.Status != domain.Active {
+		t.Fatalf("expected status to remain %q on stop error, got %q", domain.Active, gateway.Status)
 	}
 }
 

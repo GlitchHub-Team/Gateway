@@ -154,8 +154,12 @@ func (b *BufferedDataSenderService) Reset(defaultInterval time.Duration) error {
 }
 
 // Alert: in caso si vogliano chiamare dall'esterno della goroutine bisogna istanziare un mutex
-func (b *BufferedDataSenderService) Stop() {
+func (b *BufferedDataSenderService) Stop() error {
+	if err := b.bufferedDataPort.CleanWholeBuffer(b.gateway.Id); err != nil {
+		return err
+	}
 	b.gateway.Status = domain.Stopped
+	return nil
 }
 
 func (b *BufferedDataSenderService) Interrupt() {

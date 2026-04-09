@@ -56,3 +56,25 @@ func TestDeleteGatewayCmdExecuteReturnsDeleteError(t *testing.T) {
 		t.Fatalf("expected Stop not to be called, got %d", stopper.stopCalls)
 	}
 }
+
+func TestDeleteGatewayCmdExecuteReturnsStopError(t *testing.T) {
+	// verifica che DeleteGatewayCmd propaghi l'errore di stop del sender
+	expectedErr := errors.New("stop failed")
+	deleter := &mockGatewayDeleter{}
+	stopper := &mockGatewayStopper{err: expectedErr}
+
+	cmd := commands.NewDeleteGatewayCmd(&commanddata.DeleteGateway{}, deleter, stopper)
+
+	err := cmd.Execute()
+	if !errors.Is(err, expectedErr) {
+		t.Fatalf("expected error %v, got %v", expectedErr, err)
+	}
+
+	if !deleter.called {
+		t.Fatal("expected DeleteGateway to be called")
+	}
+
+	if stopper.stopCalls != 1 {
+		t.Fatalf("expected Stop to be called once, got %d", stopper.stopCalls)
+	}
+}

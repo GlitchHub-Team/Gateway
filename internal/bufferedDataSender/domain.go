@@ -22,7 +22,7 @@ type DataSenderStarter interface {
 }
 
 type DataSenderStopper interface {
-	Stop()
+	Stop() error
 }
 
 type DataSenderInterrupter interface {

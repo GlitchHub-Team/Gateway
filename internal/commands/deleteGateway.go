@@ -17,7 +17,9 @@ func (c *DeleteGatewayCmd) Execute() error {
 		return err
 	}
 
-	c.senderStopper.Stop()
+	if err := c.senderStopper.Stop(); err != nil {
+		return err
+	}
 
 	return nil
 }

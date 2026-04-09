@@ -38,6 +38,12 @@ func TestNATSDeleteGatewayIntegration(t *testing.T) {
 		})
 		responseMustSucceed(t, addRes, "Sensore aggiunto con successo")
 
+		fx.insertBufferedData(t, gateway1ID, sensorID)
+		bufferedBefore := countRows(t, fx.ctx, fx.bufferDb.DB, `SELECT COUNT(*) FROM buffer WHERE gatewayId = ?`, gateway1ID.String())
+		if bufferedBefore == 0 {
+			t.Fatalf("expected buffered rows before delete gateway")
+		}
+
 		res := sendCommand(t, fx.publisherNc, "commands.deletegateway", map[string]any{
 			"gatewayId": gateway1ID.String(),
 		})
@@ -48,6 +54,9 @@ func TestNATSDeleteGatewayIntegration(t *testing.T) {
 		}
 		if countRows(t, fx.ctx, fx.gatewayDb.DB, `SELECT COUNT(*) FROM sensors WHERE gatewayId = ?`, gateway1ID.String()) != 0 {
 			t.Fatalf("expected deleted sensors by cascade")
+		}
+		if countRows(t, fx.ctx, fx.bufferDb.DB, `SELECT COUNT(*) FROM buffer WHERE gatewayId = ?`, gateway1ID.String()) != 0 {
+			t.Fatalf("expected empty buffer after delete gateway")
 		}
 
 		secondDelete := sendCommand(t, fx.publisherNc, "commands.deletegateway", map[string]any{
