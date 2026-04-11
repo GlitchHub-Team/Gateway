@@ -3,6 +3,7 @@ package buffereddatasender
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"Gateway/internal/natsutil"
 
@@ -40,8 +41,13 @@ func (f *NATSDataPublisherFactory) Create() SendSensorDataPort {
 }
 
 func (f *NATSDataPublisherFactory) Reload(token string, seed string) (SendSensorDataPort, error) {
+	normalizedToken := normalizeCommissionedToken(token)
+	if normalizedToken == "" {
+		return nil, fmt.Errorf("commissioned token vuoto")
+	}
+
 	options := make([]nats.Option, 0, 2)
-	options = append(options, natsutil.JWTAuth(token, seed))
+	options = append(options, natsutil.JWTAuth(normalizedToken, seed))
 	options = append(options, natsutil.CAPemAuth(string(f.caPemPath)))
 
 	url := fmt.Sprintf("nats://%s:%d", f.address, f.port)
@@ -56,4 +62,27 @@ func (f *NATSDataPublisherFactory) Reload(token string, seed string) (SendSensor
 	}
 
 	return NewNATSDataPublisherRepository(nc, js, f.ctx), nil
+}
+
+func normalizeCommissionedToken(token string) string {
+	trimmed := strings.TrimSpace(token)
+	if trimmed == "" {
+		return ""
+	}
+
+	const beginJWTBlock = "-----BEGIN NATS USER JWT-----"
+	const endJWTBlock = "------END NATS USER JWT------"
+
+	beginIndex := strings.Index(trimmed, beginJWTBlock)
+	if beginIndex == -1 {
+		return trimmed
+	}
+
+	jwtSection := trimmed[beginIndex+len(beginJWTBlock):]
+	endIndex := strings.Index(jwtSection, endJWTBlock)
+	if endIndex >= 0 {
+		jwtSection = jwtSection[:endIndex]
+	}
+
+	return strings.TrimSpace(jwtSection)
 }

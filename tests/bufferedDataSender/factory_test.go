@@ -2,6 +2,7 @@ package buffereddatasender_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	_ "unsafe"
 
@@ -99,5 +100,44 @@ func TestNATSDataPublisherFactoryReloadInvalidCAPemPath(t *testing.T) {
 	_, err := factory.Reload(token, seed)
 	if err == nil {
 		t.Fatal("expected reload failure for invalid ca pem path")
+	}
+}
+
+func TestNATSDataPublisherFactoryReloadAcceptsCredsFormattedToken(t *testing.T) {
+	token, seed := newMockNATSCreds(t)
+
+	host := natsutil.NatsAddress("127.0.0.1")
+	port := natsutil.NatsPort(getFreePort(t))
+
+	nc := natsserver.NewMockNATSConnection(host, port, natsutil.NatsToken(token), natsutil.NatsSeed(seed))
+	t.Cleanup(func() { _ = nc.Drain() })
+
+	factory := buffereddatasender.NewNATSDataPublisherFactory(nil, nc, natsutil.NatsAddress(host), natsutil.NatsPort(port), context.Background(), "")
+
+	credsLikeToken := strings.Join([]string{
+		"-----BEGIN NATS USER JWT-----",
+		token,
+		"------END NATS USER JWT------",
+		"",
+		"-----BEGIN USER NKEY SEED-----",
+		seed,
+		"------END USER NKEY SEED------",
+	}, "\n")
+
+	_, err := factory.Reload(credsLikeToken, seed)
+	if err != nil {
+		t.Fatalf("expected reload to succeed with creds-formatted token, got: %v", err)
+	}
+}
+
+func TestNATSDataPublisherFactoryReloadEmptyTokenFailsFast(t *testing.T) {
+	factory := buffereddatasender.NewNATSDataPublisherFactory(nil, nil, "127.0.0.1", 4222, context.Background(), "")
+
+	_, err := factory.Reload(" \n\t ", "seed")
+	if err == nil {
+		t.Fatal("expected reload failure for empty token")
+	}
+	if !strings.Contains(err.Error(), "commissioned token vuoto") {
+		t.Fatalf("expected empty-token error, got: %v", err)
 	}
 }
