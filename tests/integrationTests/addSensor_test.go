@@ -222,7 +222,7 @@ func newIntegrationFixture(t *testing.T, opts fixtureOptions) *integrationFixtur
 	}
 
 	if opts.preloadSensor {
-		profile := sensorprofiles.ParseSensorProfile(sensorId, opts.preloadProfile, sensorprofiles.NewRand())
+		profile := sensorprofiles.ParseSensorProfile(opts.preloadSensorID, opts.preloadProfile, sensorprofiles.NewRand())
 		if profile == nil {
 			cancel()
 			controllerNc.Close()
