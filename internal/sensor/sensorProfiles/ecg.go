@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	N_SAMPLES = 250
+	N_SAMPLES = 25
 	MIN_UV    = -500
 	MAX_UV    = 1500
 )

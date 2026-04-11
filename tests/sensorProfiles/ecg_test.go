@@ -25,7 +25,7 @@ func TestEcgGenerate(t *testing.T) {
 			want: &profiles.GeneratedSensorData{
 				SensorId:  sensorId,
 				Timestamp: time.Time{},
-				Data:      &profiles.EcgData{Waveform: slices.Repeat([]int{-400}, 250)},
+				Data:      &profiles.EcgData{Waveform: slices.Repeat([]int{-400}, 25)},
 			},
 		},
 	}
