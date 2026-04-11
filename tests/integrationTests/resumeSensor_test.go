@@ -57,7 +57,7 @@ func TestNATSResumeSensorIntegration(t *testing.T) {
 		addRes := sendCommand(t, fx.publisherNc, "commands.addsensor", map[string]any{
 			"gatewayId": gateway1ID.String(),
 			"sensorId":  sensorID.String(),
-			"profile":   "HeartRate",
+			"profile":   "heart_rate",
 			"interval":  60,
 		})
 		responseMustSucceed(t, addRes, "Sensore aggiunto con successo")

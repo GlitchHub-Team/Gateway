@@ -111,21 +111,21 @@ func TestGetOrderedBufferedDataWrongColumnData(t *testing.T) {
 			name:   "wrong sensorId",
 			insert: `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`,
 			argsFn: func(gatewayID uuid.UUID) []any {
-				return []any{gatewayID.String(), "not-a-uuid", time.Now().UTC(), "HeartRate", `{"BpmValue":70}`}
+				return []any{gatewayID.String(), "not-a-uuid", time.Now().UTC(), "heart_rate", `{"BpmValue":70}`}
 			},
 		},
 		{
 			name:   "wrong timestamp",
 			insert: `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`,
 			argsFn: func(gatewayID uuid.UUID) []any {
-				return []any{gatewayID.String(), uuid.New().String(), "not-a-time", "HeartRate", `{"BpmValue":70}`}
+				return []any{gatewayID.String(), uuid.New().String(), "not-a-time", "heart_rate", `{"BpmValue":70}`}
 			},
 		},
 		{
 			name:   "wrong value",
 			insert: `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`,
 			argsFn: func(gatewayID uuid.UUID) []any {
-				return []any{gatewayID.String(), uuid.New().String(), time.Now().UTC(), "HeartRate", "{"}
+				return []any{gatewayID.String(), uuid.New().String(), time.Now().UTC(), "heart_rate", "{"}
 			},
 		},
 	}
@@ -154,11 +154,11 @@ func TestInsertWrongDataForEachColumn(t *testing.T) {
 		name string
 		args []any
 	}{
-		{name: "gatewayId null", args: []any{nil, uuid.New().String(), time.Now().UTC(), "HeartRate", `{"BpmValue":70}`}},
-		{name: "sensorId null", args: []any{uuid.New().String(), nil, time.Now().UTC(), "HeartRate", `{"BpmValue":70}`}},
-		{name: "timestamp null", args: []any{uuid.New().String(), uuid.New().String(), nil, "HeartRate", `{"BpmValue":70}`}},
+		{name: "gatewayId null", args: []any{nil, uuid.New().String(), time.Now().UTC(), "heart_rate", `{"BpmValue":70}`}},
+		{name: "sensorId null", args: []any{uuid.New().String(), nil, time.Now().UTC(), "heart_rate", `{"BpmValue":70}`}},
+		{name: "timestamp null", args: []any{uuid.New().String(), uuid.New().String(), nil, "heart_rate", `{"BpmValue":70}`}},
 		{name: "profile null", args: []any{uuid.New().String(), uuid.New().String(), time.Now().UTC(), nil, `{"BpmValue":70}`}},
-		{name: "value null", args: []any{uuid.New().String(), uuid.New().String(), time.Now().UTC(), "HeartRate", nil}},
+		{name: "value null", args: []any{uuid.New().String(), uuid.New().String(), time.Now().UTC(), "heart_rate", nil}},
 	}
 
 	for _, tt := range tests {
@@ -212,7 +212,7 @@ func TestCleanBufferedDataDeletesOnlyPassedRows(t *testing.T) {
 		{sensorID: s2, ts: t2},
 		{sensorID: s3, ts: t3},
 	} {
-		if _, err := conn.ExecContext(context.Background(), insert, gatewayID.String(), row.sensorID.String(), row.ts, "HeartRate", `{"BpmValue":70}`); err != nil {
+		if _, err := conn.ExecContext(context.Background(), insert, gatewayID.String(), row.sensorID.String(), row.ts, "heart_rate", `{"BpmValue":70}`); err != nil {
 			t.Fatalf("insert failed: %v", err)
 		}
 	}
@@ -242,7 +242,7 @@ func TestCleanBufferedDataDeletesOnlyPassedRows(t *testing.T) {
 func TestCleanBufferedDataWithWrongDBConnection(t *testing.T) {
 	goodRepo, goodConn := newMockBufferRepository(t)
 	gatewayID := uuid.New()
-	if _, err := goodConn.ExecContext(context.Background(), `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`, gatewayID.String(), uuid.New().String(), time.Now().UTC(), "HeartRate", `{"BpmValue":70}`); err != nil {
+	if _, err := goodConn.ExecContext(context.Background(), `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`, gatewayID.String(), uuid.New().String(), time.Now().UTC(), "heart_rate", `{"BpmValue":70}`); err != nil {
 		t.Fatalf("failed to seed valid row: %v", err)
 	}
 	seedData, err := goodRepo.GetOrderedBufferedData(gatewayID)
@@ -273,10 +273,10 @@ func TestCleanWholeBufferForValidAndInvalidGatewayID(t *testing.T) {
 	invalidGateway := uuid.New()
 
 	insert := `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`
-	if _, err := conn.ExecContext(context.Background(), insert, validGateway.String(), uuid.New().String(), time.Now().UTC(), "HeartRate", `{"BpmValue":70}`); err != nil {
+	if _, err := conn.ExecContext(context.Background(), insert, validGateway.String(), uuid.New().String(), time.Now().UTC(), "heart_rate", `{"BpmValue":70}`); err != nil {
 		t.Fatalf("insert valid gateway failed: %v", err)
 	}
-	if _, err := conn.ExecContext(context.Background(), insert, otherGateway.String(), uuid.New().String(), time.Now().UTC(), "HeartRate", `{"BpmValue":71}`); err != nil {
+	if _, err := conn.ExecContext(context.Background(), insert, otherGateway.String(), uuid.New().String(), time.Now().UTC(), "heart_rate", `{"BpmValue":71}`); err != nil {
 		t.Fatalf("insert other gateway failed: %v", err)
 	}
 

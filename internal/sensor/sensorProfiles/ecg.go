@@ -52,5 +52,5 @@ func (g *EcgProfile) Generate() *GeneratedSensorData {
 }
 
 func (g *EcgProfile) String() string {
-	return "ECG"
+	return "ecg_custom"
 }

@@ -18,7 +18,7 @@ func TestGetGatewayByIdLoadsGatewayAndSensors(t *testing.T) {
 	token := "jwt-token"
 	sensorID := uuid.New()
 	insertGatewayRow(t, conn, gatewayID, &tenantID, domain.Active, 3*time.Second, "public", "secret", &token)
-	insertSensorRow(t, conn, sensorID, gatewayID, "HeartRate", sensorpkg.Inactive, 2*time.Second)
+	insertSensorRow(t, conn, sensorID, gatewayID, "heart_rate", sensorpkg.Inactive, 2*time.Second)
 
 	gateway, err := repo.GetGatewayById(gatewayID)
 	if err != nil {
@@ -42,7 +42,7 @@ func TestGetGatewayByIdLoadsGatewayAndSensors(t *testing.T) {
 		t.Fatalf("unexpected sensor loaded: %+v", sensorEntity)
 	}
 
-	if sensorEntity.Profile == nil || sensorEntity.Profile.String() != "HeartRate" {
+	if sensorEntity.Profile == nil || sensorEntity.Profile.String() != "heart_rate" {
 		t.Fatalf("expected HeartRate profile, got %#v", sensorEntity.Profile)
 	}
 }
@@ -69,8 +69,8 @@ func TestGetAllGatewaysLoadsAllGatewaysAndTheirSensors(t *testing.T) {
 	secondSensorID := uuid.New()
 	insertGatewayRow(t, conn, firstGatewayID, nil, domain.Decommissioned, time.Second, "public-1", "secret-1", nil)
 	insertGatewayRow(t, conn, secondGatewayID, nil, domain.Active, 5*time.Second, "public-2", "secret-2", nil)
-	insertSensorRow(t, conn, firstSensorID, firstGatewayID, "HeartRate", sensorpkg.Active, time.Second)
-	insertSensorRow(t, conn, secondSensorID, secondGatewayID, "ECG", sensorpkg.Inactive, 2*time.Second)
+	insertSensorRow(t, conn, firstSensorID, firstGatewayID, "heart_rate", sensorpkg.Active, time.Second)
+	insertSensorRow(t, conn, secondSensorID, secondGatewayID, "ecg_custom", sensorpkg.Inactive, 2*time.Second)
 
 	gateways, err := repo.GetAllGateways()
 	if err != nil {
@@ -81,11 +81,11 @@ func TestGetAllGatewaysLoadsAllGatewaysAndTheirSensors(t *testing.T) {
 		t.Fatalf("expected 2 gateways, got %d", len(gateways))
 	}
 
-	if gateways[firstGatewayID].Status != domain.Decommissioned || gateways[firstGatewayID].Sensors[firstSensorID].Profile.String() != "HeartRate" {
+	if gateways[firstGatewayID].Status != domain.Decommissioned || gateways[firstGatewayID].Sensors[firstSensorID].Profile.String() != "heart_rate" {
 		t.Fatalf("unexpected first gateway loaded: %+v", gateways[firstGatewayID])
 	}
 
-	if gateways[secondGatewayID].Status != domain.Active || gateways[secondGatewayID].Sensors[secondSensorID].Profile.String() != "ECG" {
+	if gateways[secondGatewayID].Status != domain.Active || gateways[secondGatewayID].Sensors[secondSensorID].Profile.String() != "ecg_custom" {
 		t.Fatalf("unexpected second gateway loaded: %+v", gateways[secondGatewayID])
 	}
 }

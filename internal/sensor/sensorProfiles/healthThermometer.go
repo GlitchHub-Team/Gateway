@@ -42,5 +42,5 @@ func (g *HealthThermometerProfile) Generate() *GeneratedSensorData {
 }
 
 func (g *HealthThermometerProfile) String() string {
-	return "HealthThermometer"
+	return "health_thermometer"
 }

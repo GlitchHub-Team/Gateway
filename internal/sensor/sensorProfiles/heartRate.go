@@ -41,5 +41,5 @@ func (g *HeartRateProfile) Generate() *GeneratedSensorData {
 }
 
 func (g *HeartRateProfile) String() string {
-	return "HeartRate"
+	return "heart_rate"
 }

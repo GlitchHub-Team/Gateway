@@ -54,7 +54,7 @@ func TestSaveReturnsErrorWhenInsertFails(t *testing.T) {
 	data := &profiles.GeneratedSensorData{
 		SensorId:  uuid.New(),
 		Timestamp: time.Now().UTC(),
-		Profile:   "HeartRate",
+		Profile:   "heart_rate",
 		Data:      &mockSerializableData{},
 	}
 

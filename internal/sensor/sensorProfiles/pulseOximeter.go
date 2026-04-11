@@ -45,5 +45,5 @@ func (g *PulseOximeterProfile) Generate() *GeneratedSensorData {
 }
 
 func (g *PulseOximeterProfile) String() string {
-	return "PulseOximeter"
+	return "pulse_oximeter"
 }

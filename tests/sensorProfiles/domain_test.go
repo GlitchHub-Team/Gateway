@@ -19,33 +19,33 @@ func TestParseSensorProfile(t *testing.T) {
 	}{
 		{
 			name:        "returns ECG profile",
-			profileType: "ECG",
+			profileType: "ecg_custom",
 			wantType:    &profiles.EcgProfile{},
-			wantString:  "ECG",
+			wantString:  "ecg_custom",
 		},
 		{
 			name:        "returns EnvironmentalSensing profile",
-			profileType: "EnvironmentalSensing",
+			profileType: "environmental_sensing",
 			wantType:    &profiles.EnvironmentalSensingProfile{},
-			wantString:  "EnvironmentalSensing",
+			wantString:  "environmental_sensing",
 		},
 		{
 			name:        "returns HealthThermometer profile",
-			profileType: "HealthThermometer",
+			profileType: "health_thermometer",
 			wantType:    &profiles.HealthThermometerProfile{},
-			wantString:  "HealthThermometer",
+			wantString:  "health_thermometer",
 		},
 		{
 			name:        "returns HeartRate profile",
-			profileType: "HeartRate",
+			profileType: "heart_rate",
 			wantType:    &profiles.HeartRateProfile{},
-			wantString:  "HeartRate",
+			wantString:  "heart_rate",
 		},
 		{
 			name:        "returns PulseOximeter profile",
-			profileType: "PulseOximeter",
+			profileType: "pulse_oximeter",
 			wantType:    &profiles.PulseOximeterProfile{},
-			wantString:  "PulseOximeter",
+			wantString:  "pulse_oximeter",
 		},
 	}
 

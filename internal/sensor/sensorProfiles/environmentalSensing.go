@@ -48,5 +48,5 @@ func (g *EnvironmentalSensingProfile) Generate() *GeneratedSensorData {
 }
 
 func (g *EnvironmentalSensingProfile) String() string {
-	return "EnvironmentalSensing"
+	return "environmental_sensing"
 }

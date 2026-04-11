@@ -80,7 +80,7 @@ func TestPublishRepositorySendValidDataPublishesExpectedPayload(t *testing.T) {
 	}
 
 	repo := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, context.Background())
-	if err := callSend(t, repo, sensorID, gatewayID, ts, "HeartRate", []byte(`{"BpmValue":72}`), tenantID); err != nil {
+	if err := callSend(t, repo, sensorID, gatewayID, ts, "heart_rate", []byte(`{"BpmValue":72}`), tenantID); err != nil {
 		t.Fatalf("send returned unexpected error: %v", err)
 	}
 
@@ -106,7 +106,7 @@ func TestPublishRepositorySendValidDataPublishesExpectedPayload(t *testing.T) {
 	if !got.Timestamp.Equal(ts) {
 		t.Fatalf("unexpected timestamp: got %s want %s", got.Timestamp, ts)
 	}
-	if got.Profile != "HeartRate" {
+	if got.Profile != "heart_rate" {
 		t.Fatalf("unexpected profile: got %s", got.Profile)
 	}
 
@@ -129,7 +129,7 @@ func TestPublishRepositorySendInvalidDomainDataReturnsMarshalError(t *testing.T)
 		uuid.New(),
 		uuid.New(),
 		time.Now(),
-		"HeartRate",
+		"heart_rate",
 		[]byte("{"),
 		uuid.New(),
 	)
@@ -184,7 +184,7 @@ func TestPublishRepositorySendWithClosedNATSConnectionReturnsError(t *testing.T)
 		uuid.New(),
 		uuid.New(),
 		time.Now().UTC(),
-		"HeartRate",
+		"heart_rate",
 		[]byte(`{"BpmValue":65}`),
 		uuid.New(),
 	)

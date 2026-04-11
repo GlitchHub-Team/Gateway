@@ -232,7 +232,7 @@ func TestBufferedDataSenderStartTickerSendsDataAndCleansBuffer(t *testing.T) {
 	gateway := newGateway(domain.Active, 15*time.Millisecond)
 
 	sensorID := uuid.New()
-	insertBufferedRow(t, conn, gateway.Id, sensorID, time.Now().UTC(), "HeartRate", `{"BpmValue":70}`)
+	insertBufferedRow(t, conn, gateway.Id, sensorID, time.Now().UTC(), "heart_rate", `{"BpmValue":70}`)
 
 	nc := newMockNATSConnection(t)
 	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, context.Background())
@@ -329,7 +329,7 @@ func TestBufferedDataSenderStartKeepsUnsentDataInBuffer(t *testing.T) {
 	firstSensorID := uuid.New()
 	secondSensorID := uuid.New()
 	t0 := time.Now().UTC()
-	insertBufferedRow(t, conn, gateway.Id, firstSensorID, t0, "HeartRate", `{"BpmValue":60}`)
+	insertBufferedRow(t, conn, gateway.Id, firstSensorID, t0, "heart_rate", `{"BpmValue":60}`)
 
 	bigPayload := fmt.Sprintf(`{"blob":"%s"}`, strings.Repeat("a", 2*1024*1024))
 	insertBufferedRow(t, conn, gateway.Id, secondSensorID, t0.Add(time.Millisecond), "Large", bigPayload)
@@ -470,7 +470,7 @@ func TestBufferedDataSenderDecommissionSuccess(t *testing.T) {
 	bufferRepo, conn := newMockBufferRepository(t)
 	gateway := newGateway(domain.Active, time.Second)
 
-	insertBufferedRow(t, conn, gateway.Id, uuid.New(), time.Now().UTC(), "HeartRate", `{"BpmValue":80}`)
+	insertBufferedRow(t, conn, gateway.Id, uuid.New(), time.Now().UTC(), "heart_rate", `{"BpmValue":80}`)
 
 	invalidNC := newMockNATSConnection(t)
 	invalidJS, err := natsutil.NewJetStreamContext(invalidNC)
@@ -697,7 +697,7 @@ func TestBufferedDataSenderResetSuccess(t *testing.T) {
 	bufferRepo, conn := newMockBufferRepository(t)
 	gateway := newGateway(domain.Active, 100*time.Millisecond)
 
-	insertBufferedRow(t, conn, gateway.Id, uuid.New(), time.Now().UTC(), "HeartRate", `{"BpmValue":90}`)
+	insertBufferedRow(t, conn, gateway.Id, uuid.New(), time.Now().UTC(), "heart_rate", `{"BpmValue":90}`)
 
 	nc := newMockNATSConnection(t)
 	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, ctx)
@@ -770,7 +770,7 @@ func TestBufferedDataSenderStopInterruptResume(t *testing.T) {
 	bufferRepo, conn := newMockBufferRepository(t)
 	gateway := newGateway(domain.Active, time.Second)
 	sensorID := uuid.New()
-	insertBufferedRow(t, conn, gateway.Id, sensorID, time.Now().UTC(), "HeartRate", `{"BpmValue":72}`)
+	insertBufferedRow(t, conn, gateway.Id, sensorID, time.Now().UTC(), "heart_rate", `{"BpmValue":72}`)
 	nc := newMockNATSConnection(t)
 	sendPort := buffereddatasender.NewNATSDataPublisherRepository(nc, nil, ctx)
 

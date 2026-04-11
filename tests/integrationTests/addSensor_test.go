@@ -54,7 +54,7 @@ func TestNATSAddSensorIntegration(t *testing.T) {
 		defer fx.close(t)
 
 		sensorID := uuid.New()
-		res := fx.sendAddSensorCommand(t, fx.gatewayID, sensorID, "HeartRate", 25)
+		res := fx.sendAddSensorCommand(t, fx.gatewayID, sensorID, "heart_rate", 25)
 
 		if !res.Success {
 			t.Fatalf("expected success response, got %+v", res)
@@ -69,7 +69,7 @@ func TestNATSAddSensorIntegration(t *testing.T) {
 
 		fx.waitForBufferData(t, fx.gatewayID)
 
-		duplicate := fx.sendAddSensorCommand(t, fx.gatewayID, sensorID, "HeartRate", 25)
+		duplicate := fx.sendAddSensorCommand(t, fx.gatewayID, sensorID, "heart_rate", 25)
 		if duplicate.Success {
 			t.Fatalf("expected duplicate creation to fail, got %+v", duplicate)
 		}
@@ -82,7 +82,7 @@ func TestNATSAddSensorIntegration(t *testing.T) {
 		fx := newIntegrationFixture(t, fixtureOptions{createGateway: true})
 		defer fx.close(t)
 
-		res := fx.sendAddSensorCommand(t, uuid.New(), uuid.New(), "ECG", 10)
+		res := fx.sendAddSensorCommand(t, uuid.New(), uuid.New(), "ecg_custom", 10)
 		if res.Success {
 			t.Fatalf("expected failure response, got %+v", res)
 		}
@@ -97,12 +97,12 @@ func TestNATSAddSensorIntegration(t *testing.T) {
 			createGateway:     true,
 			preloadSensor:     true,
 			preloadSensorID:   existingSensorID,
-			preloadProfile:    "PulseOximeter",
+			preloadProfile:    "pulse_oximeter",
 			preloadIntervalMs: 40,
 		})
 		defer fx.close(t)
 
-		res := fx.sendAddSensorCommand(t, fx.gatewayID, existingSensorID, "PulseOximeter", 40)
+		res := fx.sendAddSensorCommand(t, fx.gatewayID, existingSensorID, "pulse_oximeter", 40)
 		if res.Success {
 			t.Fatalf("expected duplicate sensor failure, got %+v", res)
 		}
@@ -115,7 +115,7 @@ func TestNATSAddSensorIntegration(t *testing.T) {
 		fx := newIntegrationFixture(t, fixtureOptions{createGateway: true})
 		defer fx.close(t)
 
-		res := fx.sendAddSensorCommand(t, fx.gatewayID, uuid.New(), "EnvironmentalSensing", 0)
+		res := fx.sendAddSensorCommand(t, fx.gatewayID, uuid.New(), "environmental_sensing", 0)
 		if res.Success {
 			t.Fatalf("expected parse failure, got %+v", res)
 		}

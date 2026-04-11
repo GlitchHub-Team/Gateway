@@ -161,7 +161,7 @@ func TestAddSensorPersistsSensorRow(t *testing.T) {
 		t.Fatalf("expected sensor row, got %v", err)
 	}
 
-	if profile != "HeartRate" || status != string(sensorpkg.Active) || interval != 2000 {
+	if profile != "heart_rate" || status != string(sensorpkg.Active) || interval != 2000 {
 		t.Fatalf("unexpected sensor row")
 	}
 }
@@ -171,7 +171,7 @@ func TestInterruptAndResumeSensorUpdateStatus(t *testing.T) {
 	gatewayID := uuid.New()
 	sensorID := uuid.New()
 	insertGatewayRow(t, conn, gatewayID, nil, domain.Active, time.Second, "public", "secret", nil)
-	insertSensorRow(t, conn, sensorID, gatewayID, "HeartRate", sensorpkg.Active, time.Second)
+	insertSensorRow(t, conn, sensorID, gatewayID, "heart_rate", sensorpkg.Active, time.Second)
 
 	if err := repo.InterruptSensor(&commanddata.InterruptSensor{GatewayId: gatewayID, SensorId: sensorID}, sensorpkg.Inactive); err != nil {
 		t.Fatalf("expected nil error interrupting sensor, got %v", err)
@@ -204,7 +204,7 @@ func TestDeleteSensorDeletesRow(t *testing.T) {
 	gatewayID := uuid.New()
 	sensorID := uuid.New()
 	insertGatewayRow(t, conn, gatewayID, nil, domain.Active, time.Second, "public", "secret", nil)
-	insertSensorRow(t, conn, sensorID, gatewayID, "HeartRate", sensorpkg.Active, time.Second)
+	insertSensorRow(t, conn, sensorID, gatewayID, "heart_rate", sensorpkg.Active, time.Second)
 
 	if err := repo.DeleteSensor(&commanddata.DeleteSensor{GatewayId: gatewayID, SensorId: sensorID}); err != nil {
 		t.Fatalf("expected nil error, got %v", err)
@@ -225,7 +225,7 @@ func TestDeleteGatewayDeletesGatewayAndCascadesSensors(t *testing.T) {
 	gatewayID := uuid.New()
 	sensorID := uuid.New()
 	insertGatewayRow(t, conn, gatewayID, nil, domain.Active, time.Second, "public", "secret", nil)
-	insertSensorRow(t, conn, sensorID, gatewayID, "HeartRate", sensorpkg.Active, time.Second)
+	insertSensorRow(t, conn, sensorID, gatewayID, "heart_rate", sensorpkg.Active, time.Second)
 
 	if err := repo.DeleteGateway(&commanddata.DeleteGateway{GatewayId: gatewayID}); err != nil {
 		t.Fatalf("expected nil error, got %v", err)
