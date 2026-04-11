@@ -33,18 +33,18 @@ func NewRand() Rand {
 	return rand.New(source)
 }
 
-func ParseSensorProfile(profileType string, rand Rand) SensorProfile {
+func ParseSensorProfile(sensorId uuid.UUID, profileType string, rand Rand) SensorProfile {
 	switch profileType {
 	case "ecg_custom":
-		return NewEcgProfile(uuid.New(), rand)
+		return NewEcgProfile(sensorId, rand)
 	case "environmental_sensing":
-		return NewEnvironmentalSensingProfile(uuid.New(), rand)
+		return NewEnvironmentalSensingProfile(sensorId, rand)
 	case "health_thermometer":
-		return NewHealthThermometerProfile(uuid.New(), rand)
+		return NewHealthThermometerProfile(sensorId, rand)
 	case "heart_rate":
-		return NewHeartRateProfile(uuid.New(), rand)
+		return NewHeartRateProfile(sensorId, rand)
 	case "pulse_oximeter":
-		return NewPulseOximeterProfile(uuid.New(), rand)
+		return NewPulseOximeterProfile(sensorId, rand)
 	default:
 		return nil
 	}

@@ -71,7 +71,7 @@ func (c *NATSAddSensorController) parseAddSensorCommand(msg *nats.Msg) (*command
 		return nil, err
 	}
 
-	profile := sensorprofiles.ParseSensorProfile(req.Profile, c.rand)
+	profile := sensorprofiles.ParseSensorProfile(sensorId, req.Profile, c.rand)
 	if profile == nil {
 		return nil, fmt.Errorf("profilo sensore non valido: %s", req.Profile)
 	}

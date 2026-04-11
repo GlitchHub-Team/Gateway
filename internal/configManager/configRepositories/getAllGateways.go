@@ -100,7 +100,7 @@ func (r *SQLiteConfigRepository) loadSensors(gatewayIDs []uuid.UUID) (map[uuid.U
 			return nil, err
 		}
 
-		profile := profiles.ParseSensorProfile(profileStr, profiles.NewRand())
+		profile := profiles.ParseSensorProfile(sensorId, profileStr, profiles.NewRand())
 		if profile == nil {
 			return nil, fmt.Errorf("fallito a fare il parsing del profilo: %s", profileStr)
 		}

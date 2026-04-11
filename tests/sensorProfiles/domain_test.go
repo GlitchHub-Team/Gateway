@@ -51,7 +51,7 @@ func TestParseSensorProfile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := profiles.ParseSensorProfile(tt.profileType, &testutils.MockRandomGenerator{})
+			got := profiles.ParseSensorProfile(uuid.New(), tt.profileType, &testutils.MockRandomGenerator{})
 			if got == nil {
 				t.Fatal("expected non-nil profile")
 			}
@@ -93,7 +93,7 @@ func TestParseSensorProfile(t *testing.T) {
 
 func TestParseSensorProfileUnknown(t *testing.T) {
 	// verifica che un nome profilo non supportato ritorni null
-	got := profiles.ParseSensorProfile("Unknown", &testutils.MockRandomGenerator{})
+	got := profiles.ParseSensorProfile(uuid.New(), "Unknown", &testutils.MockRandomGenerator{})
 	if got != nil {
 		t.Fatalf("expected nil profile, got %T", got)
 	}
