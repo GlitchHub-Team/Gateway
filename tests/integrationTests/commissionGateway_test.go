@@ -58,21 +58,14 @@ type commissionFixture struct {
 
 func TestNATSCommissionGatewayIntegration(t *testing.T) {
 	t.Run("commissioning valido", func(t *testing.T) {
-		fx := newCommissionFixture(t, commissionFixtureOptions{})
+		sensorID := uuid.New()
+		fx := newCommissionFixture(t, commissionFixtureOptions{preloadGateway1SensorID: &sensorID})
 		defer fx.close(t)
 
 		creds := fx.gateway1Creds(t)
-		sensorID := uuid.New()
-		fx.insertBufferedData(t, gateway1ID, sensorID)
 
 		subject := sensorSubject(tenant1ID, gateway1ID, sensorID)
-		sub, err := fx.observerNc.SubscribeSync(subject)
-		if err != nil {
-			t.Fatalf("cannot subscribe to sensor subject: %v", err)
-		}
-		if err := fx.observerNc.FlushTimeout(2 * time.Second); err != nil {
-			t.Fatalf("cannot flush observer subscription: %v", err)
-		}
+		sub := fx.subscribeToSensorOnTestConnection(t, subject)
 
 		res := fx.sendCommissionCommand(t, gateway1ID, tenant1ID, creds.JWT)
 		if !res.Success {
@@ -83,10 +76,14 @@ func TestNATSCommissionGatewayIntegration(t *testing.T) {
 		}
 
 		fx.assertCommissionedState(t, gateway1ID, tenant1ID, creds.JWT)
+		fx.insertBufferedData(t, gateway1ID, sensorID)
 
-		_, err = sub.NextMsg(3 * time.Second)
+		msg, err := sub.NextMsg(3 * time.Second)
 		if err != nil {
 			t.Fatalf("expected data publish after commissioning: %v", err)
+		}
+		if msg.Subject != subject {
+			t.Fatalf("unexpected publish subject: got %q want %q", msg.Subject, subject)
 		}
 	})
 
@@ -171,7 +168,8 @@ func TestNATSCommissionGatewayIntegration(t *testing.T) {
 }
 
 type commissionFixtureOptions struct {
-	precommissionGateway1 bool
+	precommissionGateway1   bool
+	preloadGateway1SensorID *uuid.UUID
 }
 
 func newCommissionFixture(t *testing.T, opts commissionFixtureOptions) *commissionFixture {
@@ -239,6 +237,20 @@ func newCommissionFixture(t *testing.T, opts commissionFixtureOptions) *commissi
 			cancel()
 			controllerNc.Close()
 			t.Fatalf("cannot precommission gateway: %v", err)
+		}
+	}
+
+	if opts.preloadGateway1SensorID != nil {
+		addCmd := &commanddata.AddSensor{
+			GatewayId: gateway1ID,
+			SensorId:  *opts.preloadGateway1SensorID,
+			Profile:   sensorprofiles.NewHeartRateProfile(*opts.preloadGateway1SensorID, sensorprofiles.NewRand()),
+			Interval:  25 * time.Millisecond,
+		}
+		if err := configRepo.AddSensor(addCmd, sensor.Active); err != nil {
+			cancel()
+			controllerNc.Close()
+			t.Fatalf("cannot preload sensor for gateway1: %v", err)
 		}
 	}
 
@@ -361,6 +373,20 @@ func (f *commissionFixture) sendCommissionCommandRaw(t *testing.T, gatewayID, te
 	}
 
 	return res
+}
+
+func (f *commissionFixture) subscribeToSensorOnTestConnection(t *testing.T, subject string) *nats.Subscription {
+	t.Helper()
+
+	sub, err := f.observerNc.SubscribeSync(subject)
+	if err != nil {
+		t.Fatalf("cannot subscribe to sensor subject on test connection: %v", err)
+	}
+	if err := f.observerNc.FlushTimeout(2 * time.Second); err != nil {
+		t.Fatalf("cannot flush test observer subscription: %v", err)
+	}
+
+	return sub
 }
 
 func (f *commissionFixture) insertBufferedData(t *testing.T, gatewayID, sensorID uuid.UUID) {
