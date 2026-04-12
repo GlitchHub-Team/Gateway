@@ -266,6 +266,189 @@ func TestCleanBufferedDataWithWrongDBConnection(t *testing.T) {
 	}
 }
 
+func TestGetOrderedBufferedDataRespectsBatchLimitAndAllowsFullCleanup(t *testing.T) {
+	repo, conn := newMockBufferRepository(t)
+	gatewayID := uuid.New()
+
+	const (
+		rowsToInsert    = 700
+		maxRowsPerBatch = 999 / 3
+	)
+	insert := `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`
+	baseTs := time.Now().UTC().Add(-time.Hour)
+	for i := 0; i < rowsToInsert; i++ {
+		if _, err := conn.ExecContext(
+			context.Background(),
+			insert,
+			gatewayID.String(),
+			uuid.New().String(),
+			baseTs.Add(time.Duration(i)*time.Millisecond),
+			"heart_rate",
+			`{"BpmValue":70}`,
+		); err != nil {
+			t.Fatalf("insert failed at row %d: %v", i, err)
+		}
+	}
+
+	data, err := repo.GetOrderedBufferedData(gatewayID)
+	if err != nil {
+		t.Fatalf("get ordered data failed: %v", err)
+	}
+	if len(data) != maxRowsPerBatch {
+		t.Fatalf("expected first batch of %d rows, got %d", maxRowsPerBatch, len(data))
+	}
+
+	cleaned := 0
+	for {
+		batch, err := repo.GetOrderedBufferedData(gatewayID)
+		if err != nil {
+			t.Fatalf("get ordered data failed during cleanup loop: %v", err)
+		}
+		if len(batch) == 0 {
+			break
+		}
+		if len(batch) > maxRowsPerBatch {
+			t.Fatalf("query returned %d rows, expected at most %d", len(batch), maxRowsPerBatch)
+		}
+		if err := repo.CleanBufferedData(batch); err != nil {
+			t.Fatalf("clean buffered data failed: %v", err)
+		}
+		cleaned += len(batch)
+	}
+
+	if cleaned != rowsToInsert {
+		t.Fatalf("expected cleaned rows %d, got %d", rowsToInsert, cleaned)
+	}
+
+	remaining, err := repo.GetOrderedBufferedData(gatewayID)
+	if err != nil {
+		t.Fatalf("get remaining rows failed: %v", err)
+	}
+	if len(remaining) != 0 {
+		t.Fatalf("expected empty buffer after cleanup, got %d rows", len(remaining))
+	}
+}
+
+func TestBufferTriggerLimitIsAppliedPerGateway(t *testing.T) {
+	_, conn := newMockBufferRepository(t)
+	gatewayA := uuid.New()
+	gatewayB := uuid.New()
+
+	insert := `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`
+	baseTsA := time.Now().UTC().Add(-2 * time.Hour)
+	baseTsB := time.Now().UTC().Add(-time.Hour)
+
+	oldestTsA := baseTsA
+	secondOldestTsA := baseTsA.Add(time.Millisecond)
+	oldestTsB := baseTsB
+
+	for i := 0; i < 1000; i++ {
+		if _, err := conn.ExecContext(
+			context.Background(),
+			insert,
+			gatewayA.String(),
+			uuid.New().String(),
+			baseTsA.Add(time.Duration(i)*time.Millisecond),
+			"heart_rate",
+			`{"BpmValue":70}`,
+		); err != nil {
+			t.Fatalf("insert first 1000 gateway A failed at row %d: %v", i, err)
+		}
+	}
+
+	var countAFirst int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM buffer WHERE gatewayId = ?`, gatewayA.String()).Scan(&countAFirst); err != nil {
+		t.Fatalf("count first 1000 gateway A failed: %v", err)
+	}
+	if countAFirst != 1000 {
+		t.Fatalf("expected 1000 rows for gateway A before overflow, got %d", countAFirst)
+	}
+
+	var oldestAPresentBefore int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM buffer WHERE gatewayId = ? AND timestamp = ?`, gatewayA.String(), oldestTsA).Scan(&oldestAPresentBefore); err != nil {
+		t.Fatalf("count oldest A before overflow failed: %v", err)
+	}
+	if oldestAPresentBefore != 1 {
+		t.Fatalf("expected oldest gateway A row to exist before overflow, got %d", oldestAPresentBefore)
+	}
+
+	for i := 0; i < 600; i++ {
+		if _, err := conn.ExecContext(
+			context.Background(),
+			insert,
+			gatewayB.String(),
+			uuid.New().String(),
+			baseTsB.Add(time.Duration(i)*time.Millisecond),
+			"heart_rate",
+			`{"BpmValue":71}`,
+		); err != nil {
+			t.Fatalf("insert gateway B failed at row %d: %v", i, err)
+		}
+	}
+
+	// Insert the 1001st row for gateway A: trigger must drop only its oldest row.
+	if _, err := conn.ExecContext(
+		context.Background(),
+		insert,
+		gatewayA.String(),
+		uuid.New().String(),
+		baseTsA.Add(1000*time.Millisecond),
+		"heart_rate",
+		`{"BpmValue":72}`,
+	); err != nil {
+		t.Fatalf("insert 1001st gateway A failed: %v", err)
+	}
+
+	var countA int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM buffer WHERE gatewayId = ?`, gatewayA.String()).Scan(&countA); err != nil {
+		t.Fatalf("count gateway A failed: %v", err)
+	}
+
+	var countB int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM buffer WHERE gatewayId = ?`, gatewayB.String()).Scan(&countB); err != nil {
+		t.Fatalf("count gateway B failed: %v", err)
+	}
+
+	var oldestAStillPresent int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM buffer WHERE gatewayId = ? AND timestamp = ?`, gatewayA.String(), oldestTsA).Scan(&oldestAStillPresent); err != nil {
+		t.Fatalf("count oldest A after overflow failed: %v", err)
+	}
+
+	var secondOldestAPresent int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM buffer WHERE gatewayId = ? AND timestamp = ?`, gatewayA.String(), secondOldestTsA).Scan(&secondOldestAPresent); err != nil {
+		t.Fatalf("count second oldest A after overflow failed: %v", err)
+	}
+
+	var oldestBPresent int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM buffer WHERE gatewayId = ? AND timestamp = ?`, gatewayB.String(), oldestTsB).Scan(&oldestBPresent); err != nil {
+		t.Fatalf("count oldest B after A overflow failed: %v", err)
+	}
+
+	var countTotal int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM buffer`).Scan(&countTotal); err != nil {
+		t.Fatalf("count total failed: %v", err)
+	}
+
+	if countA != 1000 {
+		t.Fatalf("expected 1000 rows for gateway A, got %d", countA)
+	}
+	if oldestAStillPresent != 0 {
+		t.Fatalf("expected oldest gateway A row to be deleted at overflow, got %d", oldestAStillPresent)
+	}
+	if secondOldestAPresent != 1 {
+		t.Fatalf("expected second oldest gateway A row to remain, got %d", secondOldestAPresent)
+	}
+	if countB != 600 {
+		t.Fatalf("expected 600 rows for gateway B, got %d", countB)
+	}
+	if oldestBPresent != 1 {
+		t.Fatalf("expected oldest gateway B row to remain untouched, got %d", oldestBPresent)
+	}
+	if countTotal != 1600 {
+		t.Fatalf("expected 1600 total rows (>1000 globally), got %d", countTotal)
+	}
+}
+
 func TestCleanWholeBufferForValidAndInvalidGatewayID(t *testing.T) {
 	repo, conn := newMockBufferRepository(t)
 	validGateway := uuid.New()

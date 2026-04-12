@@ -29,17 +29,18 @@ func createBufferTable(db *sql.DB) error {
 	CREATE INDEX IF NOT EXISTS idx_buffer_cleanup 
 	ON buffer (gatewayId, timestamp DESC);
 
-    CREATE TRIGGER IF NOT EXISTS check_buffer_limit
+	DROP TRIGGER IF EXISTS check_buffer_limit;
+
+	CREATE TRIGGER check_buffer_limit
     AFTER INSERT ON buffer
     BEGIN
         DELETE FROM buffer
-        WHERE gatewayId = NEW.gatewayId
-          AND (sensorId, timestamp) NOT IN (
-              SELECT sensorId, timestamp
+		WHERE rowid IN (
+			  SELECT rowid
               FROM buffer
               WHERE gatewayId = NEW.gatewayId
               ORDER BY timestamp DESC
-              LIMIT %d
+			  LIMIT -1 OFFSET %d
           );
     END;
     `, MAX_BUFFER_SIZE)
