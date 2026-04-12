@@ -273,8 +273,9 @@ func ensureHelloStream(t *testing.T, ctx context.Context, nc *nats.Conn) {
 	}
 
 	if _, err := js.CreateOrUpdateStream(ctx, jetstream.StreamConfig{
-		Name:     "HELLO_STREAM",
-		Subjects: []string{"gateway.hello.*"},
+		Name:      "HELLO_STREAM",
+		Subjects:  []string{"gateway.hello.*"},
+		Retention: jetstream.WorkQueuePolicy,
 	}); err != nil {
 		t.Fatalf("cannot create/update hello stream: %v", err)
 	}
