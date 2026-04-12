@@ -50,6 +50,7 @@ type DataSenderCommissioner interface {
 }
 
 type sensorData struct {
+	RowID     int64
 	SensorId  uuid.UUID
 	GatewayId uuid.UUID
 	Timestamp time.Time

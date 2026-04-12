@@ -23,7 +23,7 @@ func NewBufferedDataRepository(ctx context.Context, conn sensor.BufferDbConnecti
 }
 
 func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]*sensorData, error) {
-	query := `SELECT sensorId, gatewayId, timestamp, profile, json(value)
+	query := `SELECT rowid, sensorId, gatewayId, timestamp, profile, json(value)
 				FROM buffer 
 				WHERE gatewayId = ? 
 				ORDER BY timestamp ASC`
@@ -37,14 +37,16 @@ func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]
 
 	var data []*sensorData
 	for rows.Next() {
+		var rowID int64
 		var sensorId, gatewayId uuid.UUID
 		var timestamp time.Time
 		var profile string
 		var value []byte
-		if err := rows.Scan(&sensorId, &gatewayId, &timestamp, &profile, &value); err != nil {
+		if err := rows.Scan(&rowID, &sensorId, &gatewayId, &timestamp, &profile, &value); err != nil {
 			return nil, fmt.Errorf("errore nello scan della riga del buffer: %w, gatewayId: %s", err, gatewayId.String())
 		}
 		data = append(data, &sensorData{
+			RowID:     rowID,
 			SensorId:  sensorId,
 			GatewayId: gatewayId,
 			Timestamp: timestamp,
@@ -96,11 +98,18 @@ func (b *BufferedDataRepository) CleanSingleBufferedData(data *sensorData) error
 		return fmt.Errorf("dato bufferizzato nullo")
 	}
 
-	query := `DELETE FROM buffer WHERE gatewayId = ? AND sensorId = ? AND timestamp = ?`
-	_, err := b.dbConnection.ExecContext(b.ctx, query, data.GatewayId, data.SensorId, data.Timestamp)
+	query := `DELETE FROM buffer WHERE rowid = ?`
+	args := []any{data.RowID}
+	if data.RowID <= 0 {
+		query = `DELETE FROM buffer WHERE gatewayId = ? AND sensorId = ? AND timestamp = ?`
+		args = []any{data.GatewayId, data.SensorId, data.Timestamp}
+	}
+
+	_, err := b.dbConnection.ExecContext(b.ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("errore nell'eseguire la query per pulire i dati del buffer: %w", err)
 	}
+
 	return nil
 }
 
