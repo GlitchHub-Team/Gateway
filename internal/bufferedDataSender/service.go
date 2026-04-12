@@ -74,7 +74,6 @@ func (b *BufferedDataSenderService) Start() {
 }
 
 func (b *BufferedDataSenderService) sendBufferedData() error {
-	confirmedData := []*sensorData{}
 	data, err := b.bufferedDataPort.GetOrderedBufferedData(b.gateway.Id)
 	if err != nil {
 		return err
@@ -89,14 +88,15 @@ func (b *BufferedDataSenderService) sendBufferedData() error {
 			)
 			continue
 		}
-		confirmedData = append(confirmedData, d)
-	}
-
-	if err := b.bufferedDataPort.CleanBufferedData(confirmedData); err != nil {
-		b.logger.Error("RISCHIO DATI DUPLICATI: Errore nella pulitura dei dati bufferizzati",
-			zap.String("gatewayId", b.gateway.Id.String()),
-			zap.Error(err),
-		)
+		if err := b.bufferedDataPort.CleanSingleBufferedData(d); err != nil {
+			b.logger.Error("Errore nella pulizia del dato bufferizzato dopo l'invio",
+				zap.String("gatewayId", b.gateway.Id.String()),
+				zap.String("tenantId", b.gateway.TenantId.String()),
+				zap.String("sensorId", d.SensorId.String()),
+				zap.String("timestamp", d.Timestamp.String()),
+				zap.Error(err),
+			)
+		}
 	}
 
 	return nil

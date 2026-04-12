@@ -3,8 +3,6 @@ package buffereddatasender
 import (
 	"context"
 	"fmt"
-	"slices"
-	"strings"
 	"time"
 
 	sensor "Gateway/internal/sensor"
@@ -17,12 +15,6 @@ type BufferedDataRepository struct {
 	dbConnection sensor.BufferDbConnection
 }
 
-const (
-	sqliteMaxVariables = 999
-	deleteTupleSize    = 3
-	maxRowsPerBatch    = sqliteMaxVariables / deleteTupleSize
-)
-
 func NewBufferedDataRepository(ctx context.Context, conn sensor.BufferDbConnection) *BufferedDataRepository {
 	return &BufferedDataRepository{
 		ctx:          ctx,
@@ -34,12 +26,14 @@ func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]
 	query := `SELECT sensorId, gatewayId, timestamp, profile, json(value)
 				FROM buffer 
 				WHERE gatewayId = ? 
-				ORDER BY timestamp ASC
-				LIMIT ?`
-	rows, err := b.dbConnection.QueryContext(b.ctx, query, gatewayId, maxRowsPerBatch)
+				ORDER BY timestamp ASC`
+	rows, err := b.dbConnection.QueryContext(b.ctx, query, gatewayId)
 	if err != nil {
 		return nil, fmt.Errorf("errore nell'eseguire la query per ottenere i dati del buffer: %w, gatewayId: %s", err, gatewayId.String())
 	}
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var data []*sensorData
 	for rows.Next() {
@@ -59,13 +53,14 @@ func (b *BufferedDataRepository) GetOrderedBufferedData(gatewayId uuid.UUID) ([]
 		})
 	}
 
-	if err := rows.Close(); err != nil {
-		return nil, fmt.Errorf("errore nella chiusura delle righe del buffer: %w, gatewayId: %s", err, gatewayId.String())
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("errore durante l'iterazione delle righe del buffer: %w, gatewayId: %s", err, gatewayId.String())
 	}
 
 	return data, nil
 }
 
+/*
 func (b *BufferedDataRepository) CleanBufferedData(data []*sensorData) error {
 	if len(data) <= 0 {
 		return nil
@@ -92,6 +87,20 @@ func (b *BufferedDataRepository) CleanBufferedData(data []*sensorData) error {
 		}
 	}
 
+	return nil
+}
+*/
+
+func (b *BufferedDataRepository) CleanSingleBufferedData(data *sensorData) error {
+	if data == nil {
+		return fmt.Errorf("dato bufferizzato nullo")
+	}
+
+	query := `DELETE FROM buffer WHERE gatewayId = ? AND sensorId = ? AND timestamp = ?`
+	_, err := b.dbConnection.ExecContext(b.ctx, query, data.GatewayId, data.SensorId, data.Timestamp)
+	if err != nil {
+		return fmt.Errorf("errore nell'eseguire la query per pulire i dati del buffer: %w", err)
+	}
 	return nil
 }
 

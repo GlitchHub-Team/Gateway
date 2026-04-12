@@ -185,14 +185,16 @@ func TestGetOrderedBufferedDataWithWrongDBConnection(t *testing.T) {
 	}
 }
 
-func TestCleanBufferedDataNilWhenEmptySlice(t *testing.T) {
+func TestCleanSingleBufferedDataWithNilData(t *testing.T) {
 	repo, _ := newMockBufferRepository(t)
-	if err := repo.CleanBufferedData(nil); err != nil {
-		t.Fatalf("expected nil error, got %v", err)
+
+	err := repo.CleanSingleBufferedData(nil)
+	if err == nil {
+		t.Fatal("expected error with nil buffered data")
 	}
 }
 
-func TestCleanBufferedDataDeletesOnlyPassedRows(t *testing.T) {
+func TestCleanSingleBufferedDataDeletesOnlyPassedRows(t *testing.T) {
 	repo, conn := newMockBufferRepository(t)
 	gatewayID := uuid.New()
 
@@ -221,9 +223,15 @@ func TestCleanBufferedDataDeletesOnlyPassedRows(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get ordered data failed: %v", err)
 	}
+	if len(data) != 3 {
+		t.Fatalf("expected 3 rows, got %d", len(data))
+	}
 
-	if err := repo.CleanBufferedData(data[:2]); err != nil {
-		t.Fatalf("clean buffered data failed: %v", err)
+	if err := repo.CleanSingleBufferedData(data[0]); err != nil {
+		t.Fatalf("clean first buffered data failed: %v", err)
+	}
+	if err := repo.CleanSingleBufferedData(data[1]); err != nil {
+		t.Fatalf("clean second buffered data failed: %v", err)
 	}
 
 	remaining, err := repo.GetOrderedBufferedData(gatewayID)
@@ -239,7 +247,7 @@ func TestCleanBufferedDataDeletesOnlyPassedRows(t *testing.T) {
 	}
 }
 
-func TestCleanBufferedDataWithWrongDBConnection(t *testing.T) {
+func TestCleanSingleBufferedDataWithWrongDBConnection(t *testing.T) {
 	goodRepo, goodConn := newMockBufferRepository(t)
 	gatewayID := uuid.New()
 	if _, err := goodConn.ExecContext(context.Background(), `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`, gatewayID.String(), uuid.New().String(), time.Now().UTC(), "heart_rate", `{"BpmValue":70}`); err != nil {
@@ -260,20 +268,17 @@ func TestCleanBufferedDataWithWrongDBConnection(t *testing.T) {
 	t.Cleanup(func() { _ = db.Close() })
 
 	repo := buffereddatasender.NewBufferedDataRepository(context.Background(), sensor.BufferDbConnection{DB: db})
-	err = repo.CleanBufferedData(seedData)
+	err = repo.CleanSingleBufferedData(seedData[0])
 	if err == nil {
-		t.Fatal("expected clean buffered data error on wrong db schema")
+		t.Fatal("expected clean single buffered data error on wrong db schema")
 	}
 }
 
-func TestGetOrderedBufferedDataRespectsBatchLimitAndAllowsFullCleanup(t *testing.T) {
+func TestGetOrderedBufferedDataReturnsAllRowsAndAllowsSequentialCleanup(t *testing.T) {
 	repo, conn := newMockBufferRepository(t)
 	gatewayID := uuid.New()
 
-	const (
-		rowsToInsert    = 700
-		maxRowsPerBatch = 999 / 3
-	)
+	const rowsToInsert = 700
 	insert := `INSERT INTO buffer (gatewayId, sensorId, timestamp, profile, value) VALUES (?, ?, ?, ?, ?)`
 	baseTs := time.Now().UTC().Add(-time.Hour)
 	for i := 0; i < rowsToInsert; i++ {
@@ -294,30 +299,14 @@ func TestGetOrderedBufferedDataRespectsBatchLimitAndAllowsFullCleanup(t *testing
 	if err != nil {
 		t.Fatalf("get ordered data failed: %v", err)
 	}
-	if len(data) != maxRowsPerBatch {
-		t.Fatalf("expected first batch of %d rows, got %d", maxRowsPerBatch, len(data))
+	if len(data) != rowsToInsert {
+		t.Fatalf("expected %d rows, got %d", rowsToInsert, len(data))
 	}
 
-	cleaned := 0
-	for {
-		batch, err := repo.GetOrderedBufferedData(gatewayID)
-		if err != nil {
-			t.Fatalf("get ordered data failed during cleanup loop: %v", err)
+	for _, row := range data {
+		if err := repo.CleanSingleBufferedData(row); err != nil {
+			t.Fatalf("clean single buffered data failed: %v", err)
 		}
-		if len(batch) == 0 {
-			break
-		}
-		if len(batch) > maxRowsPerBatch {
-			t.Fatalf("query returned %d rows, expected at most %d", len(batch), maxRowsPerBatch)
-		}
-		if err := repo.CleanBufferedData(batch); err != nil {
-			t.Fatalf("clean buffered data failed: %v", err)
-		}
-		cleaned += len(batch)
-	}
-
-	if cleaned != rowsToInsert {
-		t.Fatalf("expected cleaned rows %d, got %d", rowsToInsert, cleaned)
 	}
 
 	remaining, err := repo.GetOrderedBufferedData(gatewayID)

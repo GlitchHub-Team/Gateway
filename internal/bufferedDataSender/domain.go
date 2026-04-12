@@ -64,8 +64,9 @@ type SendSensorDataPort interface {
 
 type BufferedDataPort interface {
 	GetOrderedBufferedData(gatewayId uuid.UUID) ([]*sensorData, error)
-	CleanBufferedData(data []*sensorData) error
+	CleanSingleBufferedData(data *sensorData) error
 	CleanWholeBuffer(gatewayId uuid.UUID) error
+	// CleanBufferedData(data []*sensorData) error
 }
 
 type SendSensorDataPortFactory interface {
